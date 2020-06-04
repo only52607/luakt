@@ -20,10 +20,6 @@ class LuaTableBuilder(var tableValue: LuaTable = LuaTable()){
         tableValue[this] = mapper(tableValue[this]).asLuaValue()
     }
 
-    infix fun Any.toFun(value:(Varargs) -> Any) {
-        tableValue[this.asLuaValue()] = value
-    }
-
     operator fun LuaValue.unaryPlus(){
         tableValue.insert(tableValue.keyCount(),this)
     }
@@ -38,13 +34,13 @@ fun Map<Any,Any>.asLuaTable() = LuaTable().apply {
     }
 }
 
-fun luaTableOf(builder:LuaTableBuilder.() ->Unit):LuaTable = LuaTableBuilder().apply{ builder() }.tableValue
+inline fun luaTableOf(builder:LuaTableBuilder.() ->Unit):LuaTable = LuaTableBuilder().apply{ builder() }.tableValue
 fun luaTableOf() = LuaTable.tableOf()
 fun luaTableOf(map : Map<Any,Any>) = map.asLuaTable()
 fun luaTableOf(array : Array<LuaValue>) = array.asLuaTable()
 fun luaTableOf(collection : Collection<LuaValue>) = collection.asLuaTable()
 
-fun LuaTable.edit(editor:LuaTableBuilder.() ->Unit) = LuaTableBuilder(this).editor()
+inline fun LuaTable.edit(editor:LuaTableBuilder.() ->Unit) = LuaTableBuilder(this).editor()
 
 
 

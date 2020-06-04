@@ -1,0 +1,4 @@
+package luakotlin
+
+class KotlinClassInLua {
+}

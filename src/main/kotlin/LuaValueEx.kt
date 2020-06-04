@@ -76,7 +76,6 @@ operator fun LuaValue.invoke(vararg args:Any):Varargs{
     }
     return invoke(luaArgs.toTypedArray())
 }
-
 operator fun LuaFunction.invoke(vararg args:Any):Varargs{
     val luaArgs = mutableListOf<LuaValue>()
     args.forEach {
@@ -84,6 +83,7 @@ operator fun LuaFunction.invoke(vararg args:Any):Varargs{
     }
     return invoke(luaArgs.toTypedArray())
 }
+
 inline operator fun <reified T> LuaValue.invoke(vararg args:Any):T = invoke(*args).asKValue()
 
 fun Any.asLuaValue():LuaValue = when(this){
@@ -117,9 +117,4 @@ fun Any.asLuaValue():LuaValue = when(this){
     is LuaValueConvertible -> this.asLuaValue()
     else ->  throw Exception("Could not convert a ${this::class.simpleName} to LuaValue!")
 }
-
-operator fun LuaTable.get(key:Any): LuaValue = get(key.asLuaValue())
-operator fun LuaTable.set(key:Any, value:Any) = set(key.asLuaValue(),value.asLuaValue())
-
-operator fun Varargs.get(index:Int) : LuaValue = arg(index + 1)
 
