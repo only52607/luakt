@@ -2,8 +2,6 @@ import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.VarArgFunction
 
-
-
 fun luaFunctionOf(block:() -> Any) = object: VarArgFunction(){
     override fun onInvoke(args: Varargs?): Varargs {
         return block().asVarargs()

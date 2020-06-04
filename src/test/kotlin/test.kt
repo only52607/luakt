@@ -49,7 +49,16 @@ fun main(){
         print(add(1,2))
         print(sub(1,2))
         show("hello luakt")
+        function lua()
+            print("hello lua")
+        end
+        function add(a,b)
+            return a + b
+        end
     """.trimIndent())()
 
+    globals["lua"]()
+    globals["print"]("hello")
+    globals["print"]( "1 + 2 = " + globals["add"]<Int>(1,2))
 }
 
