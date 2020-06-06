@@ -143,4 +143,4 @@ fun main() {
 ```
 
 ## License
-[MIT License](https://github.com/ooooonly/luakt/blob/master/LICENSE)
+[MIT License](https://github.com/only52607/luakt/blob/master/LICENSE)
