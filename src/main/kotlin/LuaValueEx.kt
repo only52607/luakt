@@ -1,10 +1,8 @@
-import org.luaj.vm2.LuaFunction
-import org.luaj.vm2.LuaTable
-import org.luaj.vm2.LuaValue
-import org.luaj.vm2.Varargs
+import luakotlin.KotlinInstanceInLua
+import org.luaj.vm2.*
 import org.luaj.vm2.lib.VarArgFunction
-import java.lang.Exception
-import java.util.HashMap
+import java.util.*
+import kotlin.reflect.KClass
 
 /*
     Varargs
@@ -26,23 +24,26 @@ import java.util.HashMap
                     VarArgFunction
 */
 
-interface LuaValueConvertible{
-    fun asLuaValue():LuaValue
+interface LuaValueConvertible {
+    fun asLuaValue(): LuaValue
 }
 
-inline fun <reified T> LuaValue.asKValue(default:T? = null) : T =
-    when(T::class){
-        String::class -> default?.let { optjstring(default as String) }?:checkjstring()
-        Int::class -> default?.let { optint(default as Int) }?:checkint()
-        Long::class -> default?.let { optlong(default as Long) }?:checklong()
-        Boolean::class -> default?.let { optboolean(default as Boolean) }?:checkboolean()
-        Float::class -> default?.let { optdouble((default as Float).toDouble())}?:checkdouble().toFloat()
-        Double::class -> default?.let { optdouble(default as Double) }?:checkdouble()
+inline fun <reified T> LuaValue.asKValue(default: T? = null): T =
+    asKValue(T::class, default) as T
+
+fun LuaValue.asKValue(clazz: KClass<*>, default: Any? = null): Any =
+    when (clazz) {
+        String::class -> default?.let { optjstring(default as String) } ?: checkjstring()
+        Int::class -> default?.let { optint(default as Int) } ?: checkint()
+        Long::class -> default?.let { optlong(default as Long) } ?: checklong()
+        Boolean::class -> default?.let { optboolean(default as Boolean) } ?: checkboolean()
+        Float::class -> default?.let { optdouble((default as Float).toDouble()) } ?: checkdouble().toFloat()
+        Double::class -> default?.let { optdouble(default as Double) } ?: checkdouble()
         Unit::class -> LuaValue.NIL
-        Map::class -> checktable().let {table->
-            HashMap<LuaValue,LuaValue>().apply {
-                table.keys().forEach{
-                    set(it,table[it])
+        Map::class -> checktable().let { table ->
+            HashMap<LuaValue, LuaValue>().apply {
+                table.keys().forEach {
+                    set(it, table[it])
                 }
             }
         }
@@ -52,16 +53,18 @@ inline fun <reified T> LuaValue.asKValue(default:T? = null) : T =
         MutableIterable::class -> checktable().asMutableList()
         MutableCollection::class -> checktable().asMutableList()
         List::class -> checktable().asMutableList()
-        else -> throw Exception("Could not convert LuaValue to ${T::class.simpleName}!")
-    } as T
+        else -> if (this is LuaUserdata) this.m_instance
+        else throw Exception("Could not convert LuaValue to ${clazz.simpleName}!")
+    }
 
-inline fun <reified T> Varargs.asKValue(default:T? = null) : T =
-    when(T::class){
+
+inline fun <reified T> Varargs.asKValue(default: T? = null): T =
+    when (T::class) {
         Varargs::class -> this
         else -> arg1().asKValue<T>()
     } as T
 
-fun LuaTable.asMutableList() = let {table->
+fun LuaTable.asMutableList() = let { table ->
     mutableListOf<LuaValue>().apply {
         for(i in 1..table.keyCount()){
             add(table.rawget(i))
@@ -115,6 +118,6 @@ fun Any.asLuaValue():LuaValue = when(this){
             }
         }
     is LuaValueConvertible -> this.asLuaValue()
-    else ->  throw Exception("Could not convert a ${this::class.simpleName} to LuaValue!")
+    else -> KotlinInstanceInLua(this)
 }
 

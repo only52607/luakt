@@ -1,7 +1,5 @@
 import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
-import org.luaj.vm2.Varargs
-import org.luaj.vm2.lib.VarArgFunction
 
 class LuaTableBuilder(var tableValue: LuaTable = LuaTable()){
     infix fun String.to(value:Any){
@@ -16,14 +14,17 @@ class LuaTableBuilder(var tableValue: LuaTable = LuaTable()){
         tableValue[this] = mapper(tableValue[this]).asLuaValue()
     }
 
-    infix fun Any.map(mapper:(LuaValue) -> Any){
+    infix fun Any.map(mapper: (LuaValue) -> Any) {
         tableValue[this] = mapper(tableValue[this]).asLuaValue()
     }
 
-    operator fun LuaValue.unaryPlus(){
-        tableValue.insert(tableValue.keyCount(),this)
+    operator fun LuaValue.unaryPlus() {
+        tableValue.insert(tableValue.keyCount(), this)
     }
 
+    fun get(key: String) = tableValue.rawget(key)
+
+    fun get(key: Any) = tableValue.rawget(key.asLuaValue())
 }
 
 fun Collection<LuaValue>.asLuaTable() = LuaTable.tableOf(this.toTypedArray())

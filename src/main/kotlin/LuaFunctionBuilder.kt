@@ -1,15 +1,38 @@
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.VarArgFunction
+import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
+import kotlin.reflect.jvm.jvmErasure
+import kotlin.reflect.jvm.reflect
 
-fun luaFunctionOf(block:() -> Any) = object: VarArgFunction(){
+fun luaFunctionOfKFunction(kFunction: KFunction<*>) = object : VarArgFunction() {
+    lateinit var parameters: List<KParameter>
+
+    init {
+        parameters = kFunction.parameters
+    }
+
+    override fun onInvoke(args: Varargs?): Varargs = args?.let {
+        val parametersMap = HashMap<KParameter, Any>()
+        var i = 0
+        parameters.forEach {
+            parametersMap.put(it, args[i++].asKValue(it.type.jvmErasure))
+        }
+        kFunction.callBy(parametersMap)?.asVarargs() ?: LuaValue.NIL
+    } ?: LuaValue.NIL
+}
+
+fun luaFunctionOfLambda(function: Function<*>) = luaFunctionOfKFunction(function.reflect()!!)
+
+fun luaFunctionOf(block: () -> Any) = object : VarArgFunction() {
     override fun onInvoke(args: Varargs?): Varargs {
         return block().asVarargs()
     }
 }
 
-inline fun <reified T0> luaFunctionOf(crossinline block:(T0) -> Any) = object: VarArgFunction(){
-    override fun onInvoke(args: Varargs?): Varargs = when(T0::class){
+inline fun <reified T0> luaFunctionOf(crossinline block: (T0) -> Any) = object : VarArgFunction() {
+    override fun onInvoke(args: Varargs?): Varargs = when (T0::class) {
         Varargs::class -> args?.let {
             block(args as T0).asVarargs()
         }?: LuaValue.NIL
