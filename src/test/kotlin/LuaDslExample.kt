@@ -83,5 +83,4 @@ fun main(){
     val printFun = testGlobals["print"]
 
     printFun(sum)
-
 }
