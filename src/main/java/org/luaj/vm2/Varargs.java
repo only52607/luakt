@@ -24,19 +24,20 @@ package org.luaj.vm2;
 /**
  * Class to encapsulate varargs values, either as part of a variable argument list, or multiple return values.
  * <p>
- * To construct varargs, use one of the static methods such as 
- * {@code LuaValue.varargsOf(LuaValue,LuaValue)}
+ * To construct varargs, use one of the static methods such as
+ * {@code LuaValue.com.ooooonly.luakt.varargsOf(LuaValue,LuaValue)}
  * <p>
  * <p>
- * Any LuaValue can be used as a stand-in for Varargs, for both calls and return values. 
- * When doing so, nargs() will return 1 and arg1() or arg(1) will return this.  
- * This simplifies the case when calling or implementing varargs functions with only 
- * 1 argument or 1 return value.  
+ * Any LuaValue can be used as a stand-in for Varargs, for both calls and return values.
+ * When doing so, nargs() will return 1 and arg1() or arg(1) will return this.
+ * This simplifies the case when calling or implementing varargs functions with only
+ * 1 argument or 1 return value.
  * <p>
- * Varargs can also be derived from other varargs by appending to the front with a call 
- * such as  {@code LuaValue.varargsOf(LuaValue,Varargs)}
+ * Varargs can also be derived from other varargs by appending to the front with a call
+ * such as  {@code LuaValue.com.ooooonly.luakt.varargsOf(LuaValue,Varargs)}
  * or by taking a portion of the args using {@code Varargs.subargs(int start)}
  * <p>
+ *
  * @see LuaValue#varargsOf(LuaValue[])
  * @see LuaValue#varargsOf(LuaValue, Varargs)
  * @see LuaValue#varargsOf(LuaValue[], Varargs)

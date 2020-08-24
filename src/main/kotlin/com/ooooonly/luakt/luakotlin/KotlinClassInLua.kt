@@ -1,8 +1,8 @@
-package luakotlin
+package com.ooooonly.luakt.luakotlin
 
-import asKValue
-import asLuaValue
-import luaFunctionOfKFunction
+import com.ooooonly.luakt.asKValue
+import com.ooooonly.luakt.asLuaValue
+import com.ooooonly.luakt.luaFunctionOfKFunction
 import org.luaj.vm2.LuaFunction
 import org.luaj.vm2.LuaValue
 import java.util.*

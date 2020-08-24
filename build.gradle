@@ -1,6 +1,7 @@
 buildscript {
     repositories {
         jcenter()
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.3.0'
@@ -15,7 +16,7 @@ plugins {
 }
 
 group 'com.ooooonly'
-version '1.0-SNAPSHOT'
+version '0.0.3'
 
 sourceCompatibility = 1.8
 
@@ -57,15 +58,14 @@ tasks.withType(JavaCompile) {
 tasks.withType(Javadoc).all { enabled = false }
 
 group 'com.ooooonly'
-version '0.0.1'
+version '0.0.3'
 
 apply plugin: 'com.novoda.bintray-release'
-
 publish {
     userOrg = 'ooooonly'
     groupId = 'com.ooooonly'
     artifactId = 'luakt'
-    publishVersion = '0.0.1'
+    publishVersion = '0.0.3'
     desc = 'Luaj extensions that support the Kotlin feature'
     website = 'https://github.com/only52607/luakt'
 }

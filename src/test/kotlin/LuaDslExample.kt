@@ -1,3 +1,4 @@
+import com.ooooonly.luakt.luaFunctionOf
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.jse.JsePlatform
 
@@ -14,7 +15,7 @@ val testGlobals by lazy {
         "lucky_number" to 8
 
         //three ways to build a function
-        "kotlin_add" to luaFunctionOf<Int,Int> {a,b->
+        "kotlin_add" to luaFunctionOf<Int, Int> { a, b ->
             a + b
         }
         "kotlin_add3" to { args: Varargs ->

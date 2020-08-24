@@ -1,3 +1,5 @@
+package com.ooooonly.luakt
+
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.VarArgFunction
@@ -23,7 +25,8 @@ fun luaFunctionOfKFunction(kFunction: KFunction<*>) = object : VarArgFunction() 
     } ?: LuaValue.NIL
 }
 
-fun luaFunctionOfLambda(function: Function<*>) = luaFunctionOfKFunction(function.reflect()!!)
+fun luaFunctionOfLambda(function: Function<*>) =
+    luaFunctionOfKFunction(function.reflect()!!)
 
 fun luaFunctionOf(block: () -> Any) = object : VarArgFunction() {
     override fun onInvoke(args: Varargs?): Varargs {

@@ -1,3 +1,5 @@
+import com.ooooonly.luakt.edit
+import com.ooooonly.luakt.luaTableOf
 import org.luaj.vm2.lib.jse.JsePlatform
 
 class MyClass {
@@ -14,6 +16,7 @@ fun hello() {
 fun add(a: Int, b: Int) = a + b
 
 fun main() {
+    luaTableOf()
 /*
     MyClass::class.declaredMemberFunctions.forEach {
         println(it.name)

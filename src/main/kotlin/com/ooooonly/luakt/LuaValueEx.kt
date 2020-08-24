@@ -1,4 +1,6 @@
-import luakotlin.KotlinInstanceInLua
+package com.ooooonly.luakt
+
+import com.ooooonly.luakt.luakotlin.KotlinInstanceInLua
 import org.luaj.vm2.*
 import org.luaj.vm2.lib.VarArgFunction
 import java.util.*
@@ -102,21 +104,14 @@ fun Any.asLuaValue():LuaValue = when(this){
         override fun onInvoke(args: Varargs?): Varargs =
             args?.let {
                 ((this@asLuaValue as (Varargs) -> Any)(args)).asVarargs()
-            }?:LuaValue.NIL
+            } ?: LuaValue.NIL
     }
-    is Map<*,*> -> LuaTable().apply {
+    is Map<*, *> -> LuaTable().apply {
         this@asLuaValue.forEach { (key, value) ->
-            set(key?.asLuaValue(),value?.asLuaValue()?:LuaValue.NIL)
+            set(key?.asLuaValue(), value?.asLuaValue() ?: LuaValue.NIL)
         }
     }
-    is Iterable<*> -> LuaTable().apply {
-        var i:Int = 1
-            this@asLuaValue.forEach {
-                it?.let {
-                    this.set(i++,it.asLuaValue())
-                }
-            }
-        }
+    is Iterable<*> -> this@asLuaValue.toList().map { it!!.asLuaValue() }.toTypedArray().let { LuaTable.listOf(it) }
     is LuaValueConvertible -> this.asLuaValue()
     else -> KotlinInstanceInLua(this)
 }

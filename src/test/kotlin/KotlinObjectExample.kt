@@ -5,6 +5,12 @@ class MyKotlinClass {
     var info: String = "hello"
     var lucky_number: Int = 8
     fun add(a: Int, b: Int) = a + b
+    var inner = InnerClass()
+}
+
+class InnerClass {
+    var num: Int = 666
+    fun test() = "test success"
 }
 
 fun main() {
@@ -24,6 +30,9 @@ fun main() {
         
         --invoke method in kotlin object
         print(obj:add(1,5))
+        
+        print(obj.inner.num)
+        print(obj.inner:test())
     """.trimIndent()
     )()
 }

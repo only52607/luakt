@@ -1,4 +1,4 @@
-package luakotlin
+package com.ooooonly.luakt.luakotlin
 
 import org.luaj.vm2.LuaUserdata
 import org.luaj.vm2.LuaValue
@@ -6,7 +6,9 @@ import org.luaj.vm2.LuaValue
 
 open class KotlinInstanceInLua(
     instance: Any,
-    val kClassInLua: KotlinClassInLua = KotlinClassInLua.forKClass(instance::class)
+    val kClassInLua: KotlinClassInLua = KotlinClassInLua.forKClass(
+        instance::class
+    )
 ) : LuaUserdata(instance) {
     override fun get(key: LuaValue): LuaValue {
         val keyString = key.checkjstring()

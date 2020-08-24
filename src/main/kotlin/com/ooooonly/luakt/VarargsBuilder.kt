@@ -1,11 +1,13 @@
+package com.ooooonly.luakt
+
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 
-fun Any.asVarargs(): Varargs = when(this){
+fun Any.asVarargs(): Varargs = when (this) {
     is Varargs -> this
     is Array<*> -> LuaValue.varargsOf(mutableListOf<LuaValue>().apply {
         this@asVarargs.forEach {
-            it?.let{
+            it?.let {
                 add(it.asLuaValue())
             }
         }

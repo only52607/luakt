@@ -965,13 +965,19 @@ public class LuaTable extends LuaValue implements Metatable {
 	 * to support weak tables.
 	 */
 	interface StrongSlot extends Slot {
-		/** Return first entry's key */
+		/**
+		 * Return first entry's key
+		 */
 		LuaValue key();
 
-		/** Return first entry's value */
+		/**
+		 * Return first entry's value
+		 */
 		LuaValue value();
 
-		/** Return varargsOf(key(), value()) or equivalent */
+		/**
+		 * Return com.ooooonly.luakt.varargsOf(key(), value()) or equivalent
+		 */
 		Varargs toVarargs();
 	}
 
