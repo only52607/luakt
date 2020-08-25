@@ -5,6 +5,7 @@ import org.luaj.vm2.*
 import org.luaj.vm2.lib.VarArgFunction
 import java.util.*
 import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
 
 /*
     Varargs
@@ -30,11 +31,16 @@ interface LuaValueConvertible {
     fun asLuaValue(): LuaValue
 }
 
+interface LuaValueConverter {
+    fun asLuaValue(obj: Any): LuaValue
+}
+
 inline fun <reified T> LuaValue.asKValue(default: T? = null): T =
     asKValue(T::class, default) as T
 
-fun LuaValue.asKValue(clazz: KClass<*>, default: Any? = null): Any =
-    when (clazz) {
+fun LuaValue.asKValue(clazz: KClass<*>, default: Any? = null): Any {
+    if (clazz.isSubclassOf(LuaValue::class)) return this
+    return when (clazz) {
         String::class -> default?.let { optjstring(default as String) } ?: checkjstring()
         Int::class -> default?.let { optint(default as Int) } ?: checkint()
         Long::class -> default?.let { optlong(default as Long) } ?: checklong()
@@ -58,6 +64,7 @@ fun LuaValue.asKValue(clazz: KClass<*>, default: Any? = null): Any =
         else -> if (this is LuaUserdata) this.m_instance
         else throw Exception("Could not convert LuaValue to ${clazz.simpleName}!")
     }
+}
 
 
 inline fun <reified T> Varargs.asKValue(default: T? = null): T =
@@ -81,7 +88,8 @@ operator fun LuaValue.invoke(vararg args:Any):Varargs{
     }
     return invoke(luaArgs.toTypedArray())
 }
-operator fun LuaFunction.invoke(vararg args:Any):Varargs{
+
+operator fun LuaFunction.invoke(vararg args: Any): Varargs {
     val luaArgs = mutableListOf<LuaValue>()
     args.forEach {
         luaArgs.add(it.asLuaValue())
@@ -89,9 +97,18 @@ operator fun LuaFunction.invoke(vararg args:Any):Varargs{
     return invoke(luaArgs.toTypedArray())
 }
 
-inline operator fun <reified T> LuaValue.invoke(vararg args:Any):T = invoke(*args).asKValue()
+inline operator fun <reified T> LuaValue.invoke(vararg args: Any): T = invoke(*args).asKValue()
 
-fun Any.asLuaValue():LuaValue = when(this){
+val converters = mutableMapOf<KClass<*>, LuaValueConverter>()
+fun LuaValueConverter.register(kclazz: KClass<*>) {
+    converters[kclazz] = this
+}
+
+fun LuaValueConverter.unregister(kclazz: KClass<*>) {
+    converters.remove(kclazz)
+}
+
+fun Any.asLuaValue(): LuaValue = when (this) {
     is String -> LuaValue.valueOf(this)
     is Int -> LuaValue.valueOf(this)
     is Double -> LuaValue.valueOf(this)
@@ -111,6 +128,7 @@ fun Any.asLuaValue():LuaValue = when(this){
             set(key?.asLuaValue(), value?.asLuaValue() ?: LuaValue.NIL)
         }
     }
+    is Array<*> -> this.map { it!!.asLuaValue() }.toTypedArray().let { LuaTable.listOf(it) }
     is Iterable<*> -> this@asLuaValue.toList().map { it!!.asLuaValue() }.toTypedArray().let { LuaTable.listOf(it) }
     is LuaValueConvertible -> this.asLuaValue()
     else -> KotlinInstanceInLua(this)
