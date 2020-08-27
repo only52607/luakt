@@ -5,11 +5,12 @@ import org.luaj.vm2.LuaValue
 
 
 open class KotlinInstanceInLua(
-    instance: Any,
-    val kClassInLua: KotlinClassInLua = KotlinClassInLua.forKClass(
+    instance: Any = Any(),
+    var kClassInLua: KotlinClassInLua = KotlinClassInLua.forKClass(
         instance::class
     )
 ) : LuaUserdata(instance) {
+
     override fun get(key: LuaValue): LuaValue {
         val keyString = key.checkjstring()
         if (kClassInLua.containProperty(keyString))
@@ -25,4 +26,6 @@ open class KotlinInstanceInLua(
             return kClassInLua.setProperty(this, keyString, value)
         super.set(key, value)
     }
+
+    override fun toString(): String = m_instance.toString()
 }
