@@ -1,10 +1,12 @@
 package com.ooooonly.luakt
 
+import kotlinx.coroutines.runBlocking
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.VarArgFunction
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.callSuspendBy
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.reflect
 
@@ -21,7 +23,13 @@ fun luaFunctionOfKFunction(kFunction: KFunction<*>) = object : VarArgFunction() 
         parameters.forEach {
             parametersMap.put(it, args[i++].asKValue(it.type.jvmErasure))
         }
-        kFunction.callBy(parametersMap)?.asVarargs() ?: LuaValue.NIL
+        if (kFunction.isSuspend) {
+            runBlocking {
+                kFunction.callSuspendBy(parametersMap)?.asVarargs() ?: LuaValue.NIL
+            }
+        } else {
+            kFunction.callBy(parametersMap)?.asVarargs() ?: LuaValue.NIL
+        }
     } ?: LuaValue.NIL
 }
 
