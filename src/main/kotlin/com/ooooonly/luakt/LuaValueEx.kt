@@ -32,12 +32,11 @@ interface LuaValueConvertible {
 }
 
 interface LuaValueConverter {
-    fun asLuaValue(obj: Any): LuaValue
+    fun caseToLuaValue(obj: Any): LuaValue?
 }
 
 inline fun <reified T> LuaValue.asKValue(default: T? = null): T =
     asKValue(T::class, default) as T
-
 fun LuaValue.asKValue(clazz: KClass<*>, default: Any? = null): Any {
     if (clazz.isSubclassOf(LuaValue::class)) return this
     return when (clazz) {
@@ -99,38 +98,55 @@ operator fun LuaFunction.invoke(vararg args: Any): Varargs {
 
 inline operator fun <reified T> LuaValue.invoke(vararg args: Any): T = invoke(*args).asKValue()
 
-val converters = mutableMapOf<KClass<*>, LuaValueConverter>()
-fun LuaValueConverter.register(kclazz: KClass<*>) {
-    converters[kclazz] = this
+val converters = mutableSetOf<LuaValueConverter>()
+fun LuaValueConverter.register(): LuaValueConverter = also {
+    converters.add(this)
 }
 
-fun LuaValueConverter.unregister(kclazz: KClass<*>) {
-    converters.remove(kclazz)
+fun LuaValueConverter.unregister(): LuaValueConverter = also {
+    converters.remove(this)
 }
 
-fun Any.asLuaValue(): LuaValue = when (this) {
-    is String -> LuaValue.valueOf(this)
-    is Int -> LuaValue.valueOf(this)
-    is Double -> LuaValue.valueOf(this)
-    is Boolean -> LuaValue.valueOf(this)
-    is Unit -> LuaValue.NIL
-    is Float -> LuaValue.valueOf(this.toDouble())
-    is Long -> LuaValue.valueOf(this.toDouble())
-    is LuaValue -> this
-    is Function1<*, *> -> object : VarArgFunction() {
-        override fun onInvoke(args: Varargs?): Varargs =
-            args?.let {
-                ((this@asLuaValue as (Varargs) -> Any)(args)).asVarargs()
-            } ?: LuaValue.NIL
+
+fun Any.asLuaValue(): LuaValue {
+    //println("casting ${this::class.simpleName} contain: ${converters.containsKey(this::class)}")
+//        println("""comparing:${k.simpleName}  isinstance:${k::class.isInstance(this)}
+//|issubclass:${this::class.isSubclassOf(k::class)}
+//|issuperclass:${this::class.isSuperclassOf(k::class)}
+//|javaisinstance:${k::class.java.isInstance(this)}
+//||javaisinstance2:${k::class.java.isAssignableFrom(this::class.java)}
+//||javaisinstance3:${this::class.java.isAssignableFrom(k::class.java)}
+//|""".trimMargin())
+    var result: LuaValue? = null
+    for (v in converters) {
+        result = v.caseToLuaValue(this)
+        if (result != null) break
     }
-    is Map<*, *> -> LuaTable().apply {
-        this@asLuaValue.forEach { (key, value) ->
-            set(key?.asLuaValue(), value?.asLuaValue() ?: LuaValue.NIL)
+
+    return result ?: when (this) {
+        is LuaValueConvertible -> this.asLuaValue()
+        is String -> LuaValue.valueOf(this)
+        is Int -> LuaValue.valueOf(this)
+        is Double -> LuaValue.valueOf(this)
+        is Boolean -> LuaValue.valueOf(this)
+        is Unit -> LuaValue.NIL
+        is Float -> LuaValue.valueOf(this.toDouble())
+        is Long -> LuaValue.valueOf(this.toDouble())
+        is LuaValue -> this
+        is Function1<*, *> -> object : VarArgFunction() {
+            override fun onInvoke(args: Varargs?): Varargs =
+                args?.let {
+                    ((this@asLuaValue as (Varargs) -> Any)(args)).asVarargs()
+                } ?: LuaValue.NIL
         }
+        is Map<*, *> -> LuaTable().apply {
+            this@asLuaValue.forEach { (key, value) ->
+                set(key?.asLuaValue(), value?.asLuaValue() ?: LuaValue.NIL)
+            }
+        }
+        is Array<*> -> this.map { it!!.asLuaValue() }.toTypedArray().let { LuaTable.listOf(it) }
+        is Iterable<*> -> this@asLuaValue.toList().map { it!!.asLuaValue() }.toTypedArray().let { LuaTable.listOf(it) }
+        else -> KotlinInstanceInLua(this)
     }
-    is Array<*> -> this.map { it!!.asLuaValue() }.toTypedArray().let { LuaTable.listOf(it) }
-    is Iterable<*> -> this@asLuaValue.toList().map { it!!.asLuaValue() }.toTypedArray().let { LuaTable.listOf(it) }
-    is LuaValueConvertible -> this.asLuaValue()
-    else -> KotlinInstanceInLua(this)
 }
 
