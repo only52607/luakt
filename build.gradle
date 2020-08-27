@@ -16,7 +16,7 @@ plugins {
 }
 
 group 'com.ooooonly'
-version '0.0.3'
+version '0.0.5'
 
 sourceCompatibility = 1.8
 
@@ -58,14 +58,14 @@ tasks.withType(JavaCompile) {
 tasks.withType(Javadoc).all { enabled = false }
 
 group 'com.ooooonly'
-version '0.0.3'
+version '0.0.5'
 
 apply plugin: 'com.novoda.bintray-release'
 publish {
     userOrg = 'ooooonly'
     groupId = 'com.ooooonly'
     artifactId = 'luakt'
-    publishVersion = '0.0.3'
+    publishVersion = '0.0.5'
     desc = 'Luaj extensions that support the Kotlin feature'
     website = 'https://github.com/only52607/luakt'
 }
