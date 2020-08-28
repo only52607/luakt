@@ -15,7 +15,7 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.jvmErasure
 
 
-class KotlinClassInLua(kClass: KClass<*>) {
+class KotlinClassInLua(val kClass: KClass<*>) {
     companion object {
         private val classes: MutableMap<KClass<*>, KotlinClassInLua> = Collections.synchronizedMap(HashMap())
         fun forKClass(c: KClass<*>): KotlinClassInLua {
@@ -30,20 +30,29 @@ class KotlinClassInLua(kClass: KClass<*>) {
         }
     }
 
-    var properties: MutableMap<String, KProperty<*>>
-    var kFunctions: MutableMap<String, KFunction<*>>
-    var luaFunctions: MutableMap<String, LuaFunction>
+    private val properties: MutableMap<String, KProperty<*>> = mutableMapOf()
+
+    private val kFunctions: MutableMap<String, KFunction<*>> = mutableMapOf()
+    private val luaFunctions: MutableMap<String, LuaFunction> = mutableMapOf()
+
+    private val constructors: Collection<KFunction<*>> by lazy {
+        kClass.constructors
+    }
+    private val luaConstructors: List<LuaFunction> by lazy {
+        val result = mutableListOf<LuaFunction>()
+        constructors.forEach {
+            result.add(luaFunctionOfKFunction(it))
+        }
+        result
+    }
 
     init {
-        properties = mutableMapOf()
         kClass.declaredMemberProperties.forEach {
             properties[it.name] = it
         }
-        kFunctions = mutableMapOf()
         kClass.declaredMemberFunctions.forEach {
             kFunctions[it.name] = it
         }
-        luaFunctions = mutableMapOf()
     }
 
     fun containProperty(name: String) = properties.containsKey(name)
@@ -71,4 +80,7 @@ class KotlinClassInLua(kClass: KClass<*>) {
         }
         return luaFunctions[name]!!
     }
+
+    fun getConstructors(name: String): List<LuaFunction> = luaConstructors
+    fun getProperties() = properties
 }
