@@ -11,6 +11,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
+import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.jvmErasure
@@ -30,19 +31,12 @@ class KotlinClassInLua(val kClass: KClass<*>) {
     }
 
     private val properties: MutableMap<String, KProperty<*>> = mutableMapOf()
-
     private val kFunctions: MutableMap<String, MutableList<KFunction<*>>> = mutableMapOf()
     private val luaFunctions: MutableMap<String, LuaFunction> = mutableMapOf()
 
     init {
-        kClass.declaredMemberProperties.forEach {
-            properties[it.name] = it
-        }
-        kClass.declaredMemberFunctions.forEach {
-            val list = kFunctions[it.name] ?: mutableListOf()
-            list.add(it)
-            kFunctions[it.name] = list
-        }
+        initWithClass(kClass)
+        kClass.allSuperclasses.forEach(::initWithClass)
     }
 
     private val constructors: Collection<KFunction<*>> by lazy {
@@ -57,6 +51,16 @@ class KotlinClassInLua(val kClass: KClass<*>) {
         result
     }
 
+    private fun initWithClass(kc: KClass<*>) {
+        kc.declaredMemberProperties.forEach {
+            properties[it.name] = it
+        }
+        kc.declaredMemberFunctions.forEach {
+            val list = kFunctions[it.name] ?: mutableListOf()
+            list.add(it)
+            kFunctions[it.name] = list
+        }
+    }
 
     fun containProperty(name: String) = properties.containsKey(name)
     fun containFunction(name: String) = kFunctions.containsKey(name)
