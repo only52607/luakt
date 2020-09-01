@@ -3,6 +3,7 @@ package com.ooooonly.luakt.luakotlin
 import com.ooooonly.luakt.asKValue
 import com.ooooonly.luakt.asLuaValue
 import com.ooooonly.luakt.luaFunctionOfKFunction
+import com.ooooonly.luakt.luaFunctionOfKFunctions
 import org.luaj.vm2.LuaFunction
 import org.luaj.vm2.LuaValue
 import java.util.*
@@ -20,9 +21,7 @@ class KotlinClassInLua(val kClass: KClass<*>) {
         private val classes: MutableMap<KClass<*>, KotlinClassInLua> = Collections.synchronizedMap(HashMap())
         fun forKClass(c: KClass<*>): KotlinClassInLua {
             val j: KotlinClassInLua? = classes[c]
-            return j?.let {
-                it
-            } ?: run {
+            return j ?: run {
                 KotlinClassInLua(c).also {
                     classes[c] = it
                 }
@@ -32,12 +31,24 @@ class KotlinClassInLua(val kClass: KClass<*>) {
 
     private val properties: MutableMap<String, KProperty<*>> = mutableMapOf()
 
-    private val kFunctions: MutableMap<String, KFunction<*>> = mutableMapOf()
+    private val kFunctions: MutableMap<String, MutableList<KFunction<*>>> = mutableMapOf()
     private val luaFunctions: MutableMap<String, LuaFunction> = mutableMapOf()
+
+    init {
+        kClass.declaredMemberProperties.forEach {
+            properties[it.name] = it
+        }
+        kClass.declaredMemberFunctions.forEach {
+            val list = kFunctions[it.name] ?: mutableListOf()
+            list.add(it)
+            kFunctions[it.name] = list
+        }
+    }
 
     private val constructors: Collection<KFunction<*>> by lazy {
         kClass.constructors
     }
+
     private val luaConstructors: List<LuaFunction> by lazy {
         val result = mutableListOf<LuaFunction>()
         constructors.forEach {
@@ -46,14 +57,6 @@ class KotlinClassInLua(val kClass: KClass<*>) {
         result
     }
 
-    init {
-        kClass.declaredMemberProperties.forEach {
-            properties[it.name] = it
-        }
-        kClass.declaredMemberFunctions.forEach {
-            kFunctions[it.name] = it
-        }
-    }
 
     fun containProperty(name: String) = properties.containsKey(name)
     fun containFunction(name: String) = kFunctions.containsKey(name)
@@ -76,7 +79,7 @@ class KotlinClassInLua(val kClass: KClass<*>) {
 
     fun getLuaFunction(name: String): LuaFunction {
         if (!luaFunctions.containsKey(name)) {
-            luaFunctions[name] = luaFunctionOfKFunction(kFunctions[name]!!)
+            luaFunctions[name] = luaFunctionOfKFunctions(kFunctions[name]!!)
         }
         return luaFunctions[name]!!
     }
