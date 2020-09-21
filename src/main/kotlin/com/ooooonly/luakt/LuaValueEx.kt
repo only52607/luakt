@@ -39,6 +39,8 @@ inline fun <reified T> LuaValue.asKValue(default: T? = null): T =
     asKValue(T::class, default) as T
 fun LuaValue.asKValue(clazz: KClass<*>, default: Any? = null): Any {
     if (clazz.isSubclassOf(LuaValue::class)) return this
+    if (this.isstring() && clazz == ByteArray::class) return default?.let { optjstring(default as String).toByteArray() }
+        ?: checkjstring().toByteArray()
     return when (clazz) {
         String::class -> default?.let { optjstring(default as String) } ?: checkjstring()
         Int::class -> default?.let { optint(default as Int) } ?: checkint()
@@ -109,14 +111,6 @@ fun LuaValueConverter.unregister(): LuaValueConverter = also {
 
 
 fun Any.asLuaValue(): LuaValue {
-    //println("casting ${this::class.simpleName} contain: ${converters.containsKey(this::class)}")
-//        println("""comparing:${k.simpleName}  isinstance:${k::class.isInstance(this)}
-//|issubclass:${this::class.isSubclassOf(k::class)}
-//|issuperclass:${this::class.isSuperclassOf(k::class)}
-//|javaisinstance:${k::class.java.isInstance(this)}
-//||javaisinstance2:${k::class.java.isAssignableFrom(this::class.java)}
-//||javaisinstance3:${this::class.java.isAssignableFrom(k::class.java)}
-//|""".trimMargin())
     var result: LuaValue? = null
     for (v in converters) {
         result = v.caseToLuaValue(this)
@@ -144,6 +138,7 @@ fun Any.asLuaValue(): LuaValue {
                 set(key?.asLuaValue(), value?.asLuaValue() ?: LuaValue.NIL)
             }
         }
+        is ByteArray -> LuaValue.valueOf(String(this))
         is Array<*> -> this.map { it!!.asLuaValue() }.toTypedArray().let { LuaTable.listOf(it) }
         is Iterable<*> -> this@asLuaValue.toList().map { it!!.asLuaValue() }.toTypedArray().let { LuaTable.listOf(it) }
         else -> KotlinInstanceInLua(this)
