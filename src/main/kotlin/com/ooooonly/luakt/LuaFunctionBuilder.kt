@@ -55,7 +55,7 @@ fun luaFunctionOfKFunctions(kFunctions: List<KFunction<*>>) = object : VarArgFun
                 selectedKFunctions.add(kFunctions[i])
             }
         }
-        selectedParameterss.ifEmpty { throw LuaError("Can't find match method \"${kFunctions.first().name}\"!") }
+        selectedParameterss.ifEmpty { throw LuaError("No matching method \"${kFunctions.first().name}\" could be found") }
         var result: Any? = null
         val exceptions = mutableListOf<Exception>()
         var invokeSuccessful = false
@@ -82,8 +82,9 @@ fun luaFunctionOfKFunctions(kFunctions: List<KFunction<*>>) = object : VarArgFun
             }
         }
         if (!invokeSuccessful) {
+            println("Trying:")
             exceptions.forEach { it.printStackTrace() }
-            throw LuaError("Can't find match method \"${kFunctions.first().name}\"!")
+            throw LuaError("No matching method \"${kFunctions.first().name}\" could be found")
         }
         result?.asVarargs() ?: LuaValue.NIL
     } ?: LuaValue.NIL
