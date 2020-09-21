@@ -44,31 +44,29 @@ compileTestKotlin {
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 compileJava.options.encoding = 'UTF-8'
 compileTestJava.options.encoding = 'UTF-8'
-tasks.withType(Javadoc) {
-    options.addStringOption('Xdoclint:none', '-quiet') //忽略javadoc错误
-    options.addStringOption('encoding', 'UTF-8')
-    options{
-        encoding "UTF-8"
-        charSet 'UTF-8'
-        links "https://docs.oracle.com/javase/7/docs/api"
-    }
-}
-
+//tasks.withType(Javadoc) {
+//    options.addStringOption('Xdoclint:none', '-quiet') //忽略javadoc错误
+//    options.addStringOption('encoding', 'UTF-8')
+//    options{
+//        encoding "UTF-8"
+//        charSet 'UTF-8'
+//        links "https://docs.oracle.com/javase/7/docs/api"
+//    }
+//}
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
-
 tasks.withType(Javadoc).all { enabled = false }
 
-group 'com.ooooonly'
-version '0.0.5'
 
 apply plugin: 'com.novoda.bintray-release'
 publish {
     userOrg = 'ooooonly'
-    groupId = 'com.ooooonly'
+//    groupId = 'com.ooooonly'
+    groupId = group
     artifactId = 'luakt'
-    publishVersion = '0.0.5'
+//    publishVersion = '0.0.5'
+    publishVersion = version
     desc = 'Luaj extensions that support the Kotlin feature'
     website = 'https://github.com/only52607/luakt'
 }
