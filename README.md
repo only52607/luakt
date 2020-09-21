@@ -11,7 +11,7 @@
 
 ```gradle
 dependencies {
-    implementation 'implementation 'com.ooooonly:luakt:0.0.1'
+    implementation 'com.ooooonly:luakt:1.0.0'
 }
 ```
 
