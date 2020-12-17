@@ -185,27 +185,29 @@ public class LuaClosure extends LuaFunction {
 		Varargs v = NONE;
 		int[] code = p.code;
 		LuaValue[] k = p.k;
-		
+
 		// upvalues are only possible when closures create closures
 		// TODO: use linked list.
-		UpValue[] openups = p.p.length>0? new UpValue[stack.length]: null;
-		
+		UpValue[] openups = p.p.length > 0 ? new UpValue[stack.length] : null;
+
 		// allow for debug hooks
 		if (globals != null && globals.debuglib != null)
-			globals.debuglib.onCall( this, varargs, stack ); 
+			globals.debuglib.onCall(this, varargs, stack);
 
 		// process instructions
+		Thread currentThread = Thread.currentThread();
 		try {
 			for (; true; ++pc) {
+				if (currentThread.isInterrupted()) throw new InterruptedException("Script interrupted!");
 				if (globals != null && globals.debuglib != null)
-					globals.debuglib.onInstruction( pc, v, top ); 
-				
+					globals.debuglib.onInstruction(pc, v, top);
+
 				// pull out instruction
 				i = code[pc];
-				a = ((i>>6) & 0xff);
-				
+				a = ((i >> 6) & 0xff);
+
 				// process the op code
-				switch ( i & 0x3f ) {
+				switch (i & 0x3f) {
 				
 				case Lua.OP_MOVE:/*	A B	R(A):= R(B)					*/
 					stack[a] = stack[i>>>23];
