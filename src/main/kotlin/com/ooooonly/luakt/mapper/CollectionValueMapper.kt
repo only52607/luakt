@@ -12,7 +12,7 @@ class CollectionKValueMapper : KValueMapper {
         return when (obj) {
             is Iterable<*> -> {
                 val list = mutableListOf<LuaValue?>()
-                obj.map { defaultValueMapperChain.mapToLuaValueNullable(it, defaultValueMapperChain) }.forEach {
+                obj.map { defaultValueMapperChain.mapToLuaValueNullableInChain(it) }.forEach {
                     list.add(it)
                 }
                 return LuaValue.listOf(list.toTypedArray())
@@ -20,8 +20,8 @@ class CollectionKValueMapper : KValueMapper {
             is Map<*, *> -> LuaTable().apply {
                 obj.forEach { (key, value) ->
                     set(
-                        defaultValueMapperChain.mapToLuaValueNullable(key, defaultValueMapperChain),
-                        defaultValueMapperChain.mapToLuaValueNullable(key, defaultValueMapperChain)
+                        defaultValueMapperChain.mapToLuaValueNullableInChain(key),
+                        defaultValueMapperChain.mapToLuaValueNullableInChain(value)
                     )
                 }
             }

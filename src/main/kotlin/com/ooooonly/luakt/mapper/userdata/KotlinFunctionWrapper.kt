@@ -9,12 +9,14 @@ import org.luaj.vm2.lib.VarArgFunction
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.callSuspendBy
+import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
 open class KotlinFunctionWrapper(
-    private val kFunction: KFunction<*>,
+    val kFunction: KFunction<*>,
     private val mapperChain: ValueMapperChain? = null
 ) : VarArgFunction() {
+
     private val parameters: List<KParameter> = kFunction.parameters
 
     override fun onInvoke(args: Varargs?): Varargs {
@@ -24,17 +26,22 @@ open class KotlinFunctionWrapper(
 
         val parametersMap = parameters.associateWith {
             try {
-                mapperChain.mapToKValue(args.arg(it.index + 1), it.type.jvmErasure, mapperChain)
+                mapperChain.mapToKValueInChain(args.arg(it.index + 1), it.type.jvmErasure)
             } catch (e: LuaValueMapFailException) {
                 throw ParameterNotMatchException("Parameter not match:${e.message}")
             }
         }
-        val result = if (kFunction.isSuspend)
-            runBlocking {
-                kFunction.callSuspendBy(parametersMap)
-            }
-        else kFunction.callBy(parametersMap)
-        return mapperChain.mapToLuaValueNullable(result, mapperChain) ?: LuaValue.NIL
+        kFunction.isAccessible = true
+        val result = try {
+            if (kFunction.isSuspend)
+                runBlocking {
+                    kFunction.callSuspendBy(parametersMap)
+                }
+            else kFunction.callBy(parametersMap)
+        } catch (e: IllegalArgumentException) {
+            throw ParameterNotMatchException("Parameter not match:${e.message}")
+        }
+        return mapperChain.mapToLuaValueNullableInChain(result)
     }
 }
 

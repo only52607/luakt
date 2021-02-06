@@ -4,22 +4,27 @@ import com.ooooonly.luakt.mapper.ValueMapperChain
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.VarArgFunction
 import kotlin.reflect.KFunction
+import kotlin.reflect.jvm.jvmErasure
 
 
 open class KotlinOverloadFunctionWrapper(
-    private val kFunctions: List<KFunction<*>>,
+    val kFunctions: List<KFunction<*>>,
     private val mapperChain: ValueMapperChain? = null
 ) : VarArgFunction() {
+
     private val wrappers = kFunctions.map { KotlinFunctionWrapper(it, mapperChain) }
 
     override fun onInvoke(args: Varargs?): Varargs {
-        wrappers.forEach {
+        if (kFunctions.isEmpty()) throw ParameterNotMatchException("KFunctions is empty.")
+        val errorInfo = StringBuilder()
+        wrappers.forEach { wrapper ->
             try {
-                return@onInvoke it.invoke(args)
+                return@onInvoke wrapper.invoke(args)
             } catch (e: ParameterNotMatchException) {
-                e.printStackTrace()
+                errorInfo.append("${wrapper.kFunction.name}(${wrapper.kFunction.parameters.joinToString(separator = ",") { "${it.name}:${it.type.jvmErasure.simpleName}" }}) ${e.message} \n")
             }
         }
-        throw ParameterNotMatchException("""${wrappers.size} overload function has been tried,but failed to match the corresponding overloaded function.Please check for incorrect use '.' Operator instead of ':' operator.""")
+
+        throw ParameterNotMatchException("${wrappers.size} overload function has been tried as follow,but failed to match the corresponding overloaded function.Please check for incorrect use '.' Operator instead of ':' operator. \n $errorInfo")
     }
 }

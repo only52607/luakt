@@ -25,12 +25,12 @@ import kotlin.reflect.KClass
                     VarArgFunction
 */
 
-interface KValueMapper {
+fun interface KValueMapper {
     /* Returns null if there is no matching mapper */
     fun mapToLuaValue(obj: Any, defaultValueMapperChain: ValueMapperChain?): LuaValue?
 }
 
-interface LuaValueMapper {
+fun interface LuaValueMapper {
     /* Returns null if there is no matching mapper */
     fun mapToKValue(luaValue: LuaValue, targetClass: KClass<*>, defaultValueMapperChain: ValueMapperChain?): Any?
 }

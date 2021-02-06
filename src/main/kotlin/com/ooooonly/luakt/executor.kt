@@ -3,13 +3,14 @@ package com.ooooonly.luakt
 import org.luaj.vm2.Globals
 import org.luaj.vm2.lib.jse.JsePlatform
 
-val standardGlobals: Globals by lazy {
+val defaultGlobals: Globals by lazy {
     JsePlatform.standardGlobals()
 }
-fun runLua(code: String, globals: Globals = standardGlobals) {
+
+fun executeLuaCode(code: String, globals: Globals = defaultGlobals) {
     globals.load(code).call()
 }
 
-fun runLuaFile(filePath: String, globals: Globals = standardGlobals) {
+fun executeLuaFile(filePath: String, globals: Globals = defaultGlobals) {
     globals.loadfile(filePath).call()
 }

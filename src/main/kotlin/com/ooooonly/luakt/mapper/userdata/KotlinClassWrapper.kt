@@ -10,6 +10,7 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.superclasses
+import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
 class KotlinClassWrapper(
@@ -52,28 +53,54 @@ class KotlinClassWrapper(
         KotlinOverloadFunctionWrapper(constructors.toList(), mapperChain)
     }
 
-    fun containProperty(name: String) = properties.containsKey(name)
+    fun containSelfProperty(name: String): Boolean = properties.containsKey(name)
 
-    fun containFunction(name: String) = functions.containsKey(name)
+    fun containSelfFunction(name: String): Boolean = functions.containsKey(name)
+
+    fun containProperty(name: String): Boolean =
+        properties.containsKey(name) || superWrappers.any { it.containProperty(name) }
+
+    fun containFunction(name: String): Boolean =
+        functions.containsKey(name) || superWrappers.any { it.containFunction(name) }
 
     fun setProperty(self: KotlinInstanceWrapper, name: String, value: LuaValue) {
-        val property = properties[name] ?: throw Exception("No property $name found.")
+        val property = properties[name]
+        if (property == null) {
+            superWrappers.forEach { wrapper ->
+                if (wrapper.containSelfProperty(name)) return@setProperty wrapper.setProperty(self, name, value)
+            }
+            throw Exception("No property $name found.")
+        }
         if (property.isConst) throw Exception("Const property $name could not be set.")
+        property.isAccessible = true
         val mutableProperty = property as KMutableProperty
         mutableProperty.setter.call(
             self.m_instance,
-            mapperChain!!.mapToKValue(value, property.returnType.jvmErasure, mapperChain)
+            mapperChain!!.mapToKValueInChain(value, property.returnType.jvmErasure)
         )
     }
 
     fun getProperty(self: KotlinInstanceWrapper, name: String): LuaValue {
-        val property = properties[name] ?: return LuaValue.NIL
+        val property = properties[name]
+        if (property == null) {
+            superWrappers.forEach { wrapper ->
+                if (wrapper.containSelfProperty(name)) return@getProperty wrapper.getProperty(self, name)
+            }
+            return LuaValue.NIL
+        }
+        property.isAccessible = true
         val result = property.getter.call(self.m_instance) ?: return LuaValue.NIL
-        return mapperChain!!.mapToLuaValue(result, mapperChain) ?: LuaValue.NIL
+        return mapperChain!!.mapToLuaValueNullableInChain(result)
     }
 
     fun getFunctionWrapper(name: String): KotlinOverloadFunctionWrapper {
-        val function = functions[name] ?: throw Exception("No function $name found.")
+        val function = functions[name]
+        if (function == null) {
+            superWrappers.forEach { wrapper ->
+                if (wrapper.containSelfFunction(name)) return@getFunctionWrapper wrapper.getFunctionWrapper(name)
+            }
+            throw Exception("No function $name found.")
+        }
         if (!overloadFunctionWrappers.containsKey(name)) {
             val wrapper = KotlinOverloadFunctionWrapper(function, mapperChain)
             overloadFunctionWrappers[name] = wrapper

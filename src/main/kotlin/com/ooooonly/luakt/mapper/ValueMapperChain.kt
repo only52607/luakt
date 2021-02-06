@@ -31,9 +31,16 @@ abstract class ValueMapperChain : ValueMapper {
 
     fun addLuaValueMapperAfter(luaValueMapper: LuaValueMapper) = luaValueMappers.addLast(luaValueMapper)
 
-    fun mapToLuaValueNullable(obj: Any?, defaultValueMapperChain: ValueMapperChain?): LuaValue? {
+    fun mapToLuaValueNullableInChain(obj: Any?): LuaValue {
         if (obj == null) return LuaValue.NIL
-        return mapToLuaValue(obj, defaultValueMapperChain)
+        return mapToLuaValue(obj, this)!!
+    }
+
+    fun mapToKValueInChain(
+        luaValue: LuaValue,
+        targetClass: KClass<*>
+    ): Any {
+        return mapToKValue(luaValue, targetClass, this)!!
     }
 
     override fun mapToLuaValue(obj: Any, defaultValueMapperChain: ValueMapperChain?): LuaValue? {

@@ -24,30 +24,15 @@ class LuaTableBuilder(var tableValue: LuaTable = LuaTable()) {
         tableValue.insert(tableValue.keyCount(), this)
     }
 
-    fun get(key: String) = tableValue.rawget(key)
+    fun get(key: String): LuaValue = tableValue.rawget(key)
 
-    fun get(key: Any) = tableValue.rawget(key.asLuaValue())
+    fun get(key: Any): LuaValue = tableValue.rawget(key.asLuaValue())
 }
 
-fun Collection<LuaValue>.asLuaTable() = LuaTable.tableOf(this.toTypedArray())
-fun Array<LuaValue>.asLuaTable() = LuaTable.tableOf(this)
-fun Map<Any, Any>.asLuaTable() = LuaTable().apply {
-    this@asLuaTable.forEach { key, value ->
-        rawset(key.asLuaValue(), value.asLuaValue())
-    }
-}
-
-inline fun luaTableOf(builder: LuaTableBuilder.() -> Unit): LuaTable = LuaTableBuilder()
+inline fun buildLuaTable(builder: LuaTableBuilder.() -> Unit): LuaTable = LuaTableBuilder()
     .apply { builder() }.tableValue
 
-fun luaTableOf() = LuaTable.tableOf()
-fun luaTableOf(map: Map<Any, Any>) = map.asLuaTable()
-fun luaTableOf(array: Array<LuaValue>) = array.asLuaTable()
-fun luaTableOf(collection: Collection<LuaValue>) = collection.asLuaTable()
-
-inline fun LuaTable.edit(editor: LuaTableBuilder.() -> Unit) = LuaTableBuilder(
+inline fun LuaTable.edit(process: LuaTableBuilder.() -> Unit) = LuaTableBuilder(
     this
-).editor()
-
-
+).process()
 
