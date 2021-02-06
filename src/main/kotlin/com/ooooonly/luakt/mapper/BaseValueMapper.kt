@@ -6,6 +6,9 @@ import kotlin.reflect.KClass
 class BaseKValueMapper : KValueMapper {
     override fun mapToLuaValue(obj: Any, defaultValueMapperChain: ValueMapperChain?): LuaValue? {
         return when (obj) {
+            is Byte -> LuaValue.valueOf(obj.toInt())
+            is Short -> LuaValue.valueOf(obj.toDouble())
+            is Char -> LuaValue.valueOf(obj.toString())
             is String -> LuaValue.valueOf(obj)
             is Int -> LuaValue.valueOf(obj)
             is Double -> LuaValue.valueOf(obj)
@@ -27,6 +30,8 @@ class BaseLuaValueMapper : LuaValueMapper {
     ): Any? {
         return try {
             when (targetClass) {
+                Byte::class -> luaValue.toint()
+                Char::class -> luaValue.tojstring()
                 String::class -> luaValue.tojstring()
                 Int::class -> if (luaValue.isstring()) luaValue.checkjstring().toInt() else luaValue.checkint()
                 Long::class -> if (luaValue.isstring()) luaValue.checkjstring().toLong() else luaValue.checklong()
