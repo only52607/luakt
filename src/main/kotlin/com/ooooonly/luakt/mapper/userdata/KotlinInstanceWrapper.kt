@@ -4,7 +4,7 @@ import org.luaj.vm2.LuaUserdata
 import org.luaj.vm2.LuaValue
 
 open class KotlinInstanceWrapper(
-    instance: Any = Any(),
+    val instance: Any = Any(),
     private val kClassWrapper: KotlinClassWrapper = KotlinClassWrapper.forKClass(instance::class)
 ) : LuaUserdata(instance) {
 
@@ -31,5 +31,8 @@ open class KotlinInstanceWrapper(
         else -> null
     }
 
+    fun isSubClassOf(className: String) = kClassWrapper.isSubClassOf(className)
+    override fun typename(): String? = instance::class.simpleName
+    override fun tostring(): LuaValue = LuaValue.valueOf(toString())
     override fun toString(): String = m_instance.toString()
 }

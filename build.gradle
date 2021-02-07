@@ -17,7 +17,7 @@ plugins {
 }
 
 group 'com.ooooonly'
-version '2.0.5'
+version '2.0.8'
 
 sourceCompatibility = 1.8
 

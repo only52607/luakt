@@ -7,6 +7,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
+import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.functions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
@@ -102,4 +103,6 @@ class KotlinClassWrapper(
     fun getPropertyInfo() = kClass.memberProperties.joinToString(separator = "\n") { it.simpleInfo }
 
     fun getFunctionsInfo() = kClass.functions.joinToString(separator = "\n") { it.simpleInfo }
+
+    fun isSubClassOf(className: String) = kClass.allSuperclasses.any { it.simpleName == className }
 }
