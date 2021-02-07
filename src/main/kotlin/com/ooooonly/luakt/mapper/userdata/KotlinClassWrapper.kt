@@ -108,4 +108,18 @@ class KotlinClassWrapper(
         }
         return overloadFunctionWrappers[name]!!
     }
+
+    fun getDeclaredMemberPropertiesInfo() = getSelfDeclaredMemberPropertiesInfo() + "\n" + superWrappers.joinToString(
+        separator = "\n"
+    ) { it.getSelfDeclaredMemberPropertiesInfo() }
+
+    fun getDeclaredMemberFunctionsInfo() = getSelfDeclaredMemberFunctionsInfo() + "\n" + superWrappers.joinToString(
+        separator = "\n"
+    ) { it.getSelfDeclaredMemberFunctionsInfo() }
+
+    fun getSelfDeclaredMemberPropertiesInfo() =
+        kClass.declaredMemberProperties.joinToString(separator = "\n") { it.simpleInfo }
+
+    fun getSelfDeclaredMemberFunctionsInfo() =
+        kClass.declaredMemberFunctions.joinToString(separator = "\n") { it.simpleInfo }
 }

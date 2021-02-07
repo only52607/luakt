@@ -9,6 +9,7 @@ open class KotlinInstanceWrapper(
 ) : LuaUserdata(instance) {
 
     override fun get(key: LuaValue): LuaValue {
+        checkMetaInfo(key)?.let { return@get it }
         val keyString = key.checkjstring()
         if (kClassWrapper.containProperty(keyString))
             return kClassWrapper.getProperty(this, keyString)
@@ -22,6 +23,12 @@ open class KotlinInstanceWrapper(
         if (kClassWrapper.containProperty(keyString))
             return kClassWrapper.setProperty(this, keyString, value)
         super.set(key, value)
+    }
+
+    private fun checkMetaInfo(luaValue: LuaValue): LuaValue? = when (luaValue.tojstring()) {
+        "__property" -> LuaValue.valueOf(kClassWrapper.getDeclaredMemberPropertiesInfo())
+        "__function" -> LuaValue.valueOf(kClassWrapper.getDeclaredMemberFunctionsInfo())
+        else -> null
     }
 
     override fun toString(): String = m_instance.toString()
