@@ -44,6 +44,7 @@ abstract class ValueMapperChain : ValueMapper {
     }
 
     override fun mapToLuaValue(obj: Any, defaultValueMapperChain: ValueMapperChain?): LuaValue? {
+        if (obj is LuaValue) return obj
         var result: LuaValue?
         kValueMappers.forEach {
             result = it.mapToLuaValue(obj, defaultValueMapperChain)
