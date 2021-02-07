@@ -11,12 +11,12 @@ abstract class ValueMapperChain : ValueMapper {
     companion object DEFAULT : ValueMapperChain() {
         init {
             addKValueMapperAfter(BaseKValueMapper())
-            addKValueMapperAfter(CollectionKValueMapper())
+//            addKValueMapperAfter(CollectionKValueMapper())
             addKValueMapperAfter(UserDataKValueMapper())
 
             addLuaValueMapperAfter(UserDataLuaValueMapper())
             addLuaValueMapperAfter(BaseLuaValueMapper())
-            addLuaValueMapperAfter(CollectionLuaValueMapper())
+//            addLuaValueMapperAfter(CollectionLuaValueMapper())
         }
     }
 
