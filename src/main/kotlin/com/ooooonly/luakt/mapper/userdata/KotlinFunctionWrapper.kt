@@ -43,6 +43,8 @@ open class KotlinFunctionWrapper(
         }
         return mapperChain.mapToLuaValueNullableInChain(result)
     }
+
+    override fun toString(): String = kFunction.simpleInfo
 }
 
 class ParameterNotMatchException(override val message: String?) : Exception(message)

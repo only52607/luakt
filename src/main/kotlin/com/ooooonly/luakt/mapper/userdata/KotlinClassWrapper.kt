@@ -7,9 +7,8 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.declaredMemberFunctions
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.superclasses
+import kotlin.reflect.full.functions
+import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
@@ -31,16 +30,16 @@ class KotlinClassWrapper(
         }
     }
 
-    private val superWrappers: List<KotlinClassWrapper> by lazy {
-        kClass.superclasses.map { forKClass(it) }
-    }
+//    private val superWrappers: List<KotlinClassWrapper> by lazy {
+//        kClass.superclasses.map { forKClass(it) }
+//    }
 
     private val properties: Map<String, KProperty<*>> by lazy {
-        kClass.declaredMemberProperties.associateBy { it.name }
+        kClass.memberProperties.associateBy { it.name }
     }
 
     private val functions: Map<String, List<KFunction<*>>> by lazy {
-        kClass.declaredMemberFunctions.groupBy { it.name }
+        kClass.functions.groupBy { it.name }
     }
 
     private val overloadFunctionWrappers: MutableMap<String, KotlinOverloadFunctionWrapper> = mutableMapOf()
@@ -53,24 +52,21 @@ class KotlinClassWrapper(
         KotlinOverloadFunctionWrapper(constructors.toList(), mapperChain)
     }
 
-    fun containSelfProperty(name: String): Boolean = properties.containsKey(name)
+    //fun containSelfProperty(name: String): Boolean = properties.containsKey(name)
 
-    fun containSelfFunction(name: String): Boolean = functions.containsKey(name)
+    //fun containSelfFunction(name: String): Boolean = functions.containsKey(name)
 
     fun containProperty(name: String): Boolean =
-        properties.containsKey(name) || superWrappers.any { it.containProperty(name) }
+        properties.containsKey(name) // || superWrappers.any { it.containProperty(name) }
 
     fun containFunction(name: String): Boolean =
-        functions.containsKey(name) || superWrappers.any { it.containFunction(name) }
+        functions.containsKey(name) // || superWrappers.any { it.containFunction(name) }
 
     fun setProperty(self: KotlinInstanceWrapper, name: String, value: LuaValue) {
-        val property = properties[name]
-        if (property == null) {
-            superWrappers.forEach { wrapper ->
-                if (wrapper.containSelfProperty(name)) return@setProperty wrapper.setProperty(self, name, value)
-            }
-            throw Exception("No property $name found.")
-        }
+        val property = properties[name] ?: throw Exception("No property $name found.")
+//        superWrappers.forEach { wrapper ->
+//            if (wrapper.containSelfProperty(name)) return@setProperty wrapper.setProperty(self, name, value)
+//        }
         if (property.isConst) throw Exception("Const property $name could not be set.")
         property.isAccessible = true
         val mutableProperty = property as KMutableProperty
@@ -81,26 +77,20 @@ class KotlinClassWrapper(
     }
 
     fun getProperty(self: KotlinInstanceWrapper, name: String): LuaValue {
-        val property = properties[name]
-        if (property == null) {
-            superWrappers.forEach { wrapper ->
-                if (wrapper.containSelfProperty(name)) return@getProperty wrapper.getProperty(self, name)
-            }
-            return LuaValue.NIL
-        }
+        val property = properties[name] ?: return LuaValue.NIL
+//        superWrappers.forEach { wrapper ->
+//            if (wrapper.containSelfProperty(name)) return@getProperty wrapper.getProperty(self, name)
+//        }
         property.isAccessible = true
         val result = property.getter.call(self.m_instance) ?: return LuaValue.NIL
         return mapperChain!!.mapToLuaValueNullableInChain(result)
     }
 
     fun getFunctionWrapper(name: String): KotlinOverloadFunctionWrapper {
-        val function = functions[name]
-        if (function == null) {
-            superWrappers.forEach { wrapper ->
-                if (wrapper.containSelfFunction(name)) return@getFunctionWrapper wrapper.getFunctionWrapper(name)
-            }
-            throw Exception("No function $name found.")
-        }
+        val function = functions[name] ?: throw Exception("No function $name found.")
+        //        superWrappers.forEach { wrapper ->
+//            if (wrapper.containSelfFunction(name)) return@getFunctionWrapper wrapper.getFunctionWrapper(name)
+//        }
         if (!overloadFunctionWrappers.containsKey(name)) {
             val wrapper = KotlinOverloadFunctionWrapper(function, mapperChain)
             overloadFunctionWrappers[name] = wrapper
@@ -109,17 +99,7 @@ class KotlinClassWrapper(
         return overloadFunctionWrappers[name]!!
     }
 
-    fun getDeclaredMemberPropertiesInfo() = getSelfDeclaredMemberPropertiesInfo() + "\n" + superWrappers.joinToString(
-        separator = "\n"
-    ) { it.getSelfDeclaredMemberPropertiesInfo() }
+    fun getPropertyInfo() = kClass.memberProperties.joinToString(separator = "\n") { it.simpleInfo }
 
-    fun getDeclaredMemberFunctionsInfo() = getSelfDeclaredMemberFunctionsInfo() + "\n" + superWrappers.joinToString(
-        separator = "\n"
-    ) { it.getSelfDeclaredMemberFunctionsInfo() }
-
-    fun getSelfDeclaredMemberPropertiesInfo() =
-        kClass.declaredMemberProperties.joinToString(separator = "\n") { it.simpleInfo }
-
-    fun getSelfDeclaredMemberFunctionsInfo() =
-        kClass.declaredMemberFunctions.joinToString(separator = "\n") { it.simpleInfo }
+    fun getFunctionsInfo() = kClass.functions.joinToString(separator = "\n") { it.simpleInfo }
 }

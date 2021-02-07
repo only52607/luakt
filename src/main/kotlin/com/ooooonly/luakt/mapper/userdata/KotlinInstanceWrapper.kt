@@ -26,8 +26,8 @@ open class KotlinInstanceWrapper(
     }
 
     private fun checkMetaInfo(luaValue: LuaValue): LuaValue? = when (luaValue.tojstring()) {
-        "__property" -> LuaValue.valueOf(kClassWrapper.getDeclaredMemberPropertiesInfo())
-        "__function" -> LuaValue.valueOf(kClassWrapper.getDeclaredMemberFunctionsInfo())
+        "__property_info" -> LuaValue.valueOf(kClassWrapper.getPropertyInfo())
+        "__function_info" -> LuaValue.valueOf(kClassWrapper.getFunctionsInfo())
         else -> null
     }
 
