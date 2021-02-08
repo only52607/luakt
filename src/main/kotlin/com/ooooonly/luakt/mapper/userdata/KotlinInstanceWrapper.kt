@@ -15,7 +15,7 @@ open class KotlinInstanceWrapper(
             return kClassWrapper.getProperty(this, keyString)
         if (kClassWrapper.containFunction(keyString))
             return kClassWrapper.getFunctionWrapper(keyString)
-        return LuaValue.NIL
+        return super.get(key)
     }
 
     override fun set(key: LuaValue, value: LuaValue) {
