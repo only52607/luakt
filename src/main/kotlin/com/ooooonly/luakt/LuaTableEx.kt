@@ -27,3 +27,19 @@ operator fun LuaTable.set(key: Any, value: Any) =
 
 fun LuaTable.getOrNull(key: Any): LuaValue? =
     get(mapperChain.mapToLuaValueNullableInChain(key))?.takeIf { it != LuaValue.NIL }
+
+fun LuaTable.forEach(process: (key: LuaValue, value: LuaValue) -> Unit) {
+    var k: LuaValue = LuaValue.NIL
+    while (true) {
+        val n = next(k)
+        k = n.arg1()
+        if (k.isnil())
+            break
+        val v = n.arg(2)
+        process(k, v)
+    }
+}
+
+fun LuaTable.setFrom(luaTable: LuaTable) {
+    luaTable.forEach { key, value -> set(key, value) }
+}

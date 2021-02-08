@@ -4,6 +4,13 @@ import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
 
 class LuaTableBuilder(var tableValue: LuaTable = LuaTable()) {
+
+    infix fun Iterable<*>.nto(value: Any) {
+        forEach {
+            tableValue[it.asLuaValue()] = value
+        }
+    }
+
     infix fun String.to(value: Any) {
         tableValue[this] = value
     }
