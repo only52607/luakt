@@ -7,9 +7,8 @@ import org.luaj.vm2.lib.VarArgFunction
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.jvmErasure
 
-
 open class KotlinOverloadFunctionWrapper(
-    val kFunctions: List<KFunction<*>>,
+    private val kFunctions: Collection<KFunction<*>>,
     private val mapperChain: ValueMapperChain? = null
 ) : VarArgFunction() {
 
@@ -25,7 +24,6 @@ open class KotlinOverloadFunctionWrapper(
                 errorInfo.append("${wrapper.kFunction.name}(${wrapper.kFunction.parameters.joinToString(separator = ",") { "${it.name}:${it.type.jvmErasure.simpleName}" }}) ${e.message} \n")
             }
         }
-
         throw ParameterNotMatchException("${wrappers.size} overload function has been tried as follow,but failed to match the corresponding overloaded function.Please check for incorrect use '.' Operator instead of ':' operator. \n $errorInfo")
     }
 

@@ -1,24 +1,26 @@
 package com.ooooonly.luakt.mapper.userdata
 
+import com.ooooonly.luakt.asKValue
+import com.ooooonly.luakt.asLuaValue
 import com.ooooonly.luakt.mapper.ValueMapperChain
 import org.luaj.vm2.LuaTable
+import org.luaj.vm2.LuaUserdata
 import org.luaj.vm2.LuaValue
+import org.luaj.vm2.Varargs
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.allSuperclasses
-import kotlin.reflect.full.functions
-import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
 @Suppress("unused")
-class KotlinClassWrapper(
+open class KotlinClassWrapper(
     private val kClass: KClass<*>,
     private val mapperChain: ValueMapperChain? = null
-) {
+) : LuaUserdata(kClass) {
     companion object {
         private val classes: MutableMap<KClass<*>, KotlinClassWrapper> = Collections.synchronizedMap(HashMap())
         private val mapperChain = ValueMapperChain.DEFAULT
@@ -33,9 +35,17 @@ class KotlinClassWrapper(
         }
     }
 
-//    private val superWrappers: List<KotlinClassWrapper> by lazy {
-//        kClass.superclasses.map { forKClass(it) }
-//    }
+    private val staticProperties: Map<String, KProperty<*>> by lazy {
+        kClass.staticProperties.associateBy { it.name }
+    }
+
+    private val staticFunctions: Map<String, List<KFunction<*>>> by lazy {
+        kClass.staticFunctions.groupBy { it.name }
+    }
+
+    private val overloadStaticFunctionWrappers: Map<String, KotlinOverloadFunctionWrapper> by lazy {
+        staticFunctions.mapValues { KotlinOverloadFunctionWrapper(it.value, mapperChain) }
+    }
 
     private val properties: Map<String, KProperty<*>> by lazy {
         kClass.memberProperties.associateBy { it.name }
@@ -51,6 +61,10 @@ class KotlinClassWrapper(
 
     private val constructors: Collection<KFunction<*>> by lazy {
         kClass.constructors
+    }
+
+    private val constructorWrapper: KotlinOverloadFunctionWrapper by lazy {
+        KotlinOverloadFunctionWrapper(constructors, mapperChain)
     }
 
     private val overloadConstructorWrapper: KotlinOverloadFunctionWrapper by lazy {
@@ -99,9 +113,35 @@ class KotlinClassWrapper(
 
     fun getAllFunctions(): LuaTable = LuaTable.listOf(overloadFunctionWrappers.values.toTypedArray())
 
-    // fun getPropertyInfo() = kClass.memberProperties.joinToString(separator = "\n") { it.simpleInfo }
-
-    // fun getFunctionsInfo() = kClass.functions.joinToString(separator = "\n") { it.simpleInfo }
-
     fun isSubClassOf(className: String) = kClass.allSuperclasses.any { it.simpleName == className }
+
+    override fun get(key: LuaValue?): LuaValue {
+        val keyString = key?.checkjstring() ?: return NIL
+        if (staticProperties.containsKey(keyString))
+            return staticProperties[keyString]?.getter?.call()?.asLuaValue() ?: NIL
+        if (overloadStaticFunctionWrappers.containsKey(keyString))
+            return overloadStaticFunctionWrappers[keyString] ?: NIL
+        return NIL
+    }
+
+    override fun set(key: LuaValue?, value: LuaValue) {
+        val keyString = key?.checkjstring() ?: return
+        if (staticProperties.containsKey(keyString)) {
+            val property = staticProperties[keyString] as KMutableProperty
+            property.setter.call(value.asKValue(property.setter.parameters.first().type.jvmErasure))
+        }
+    }
+
+    override fun call(): LuaValue? = invoke(NONE).arg1()
+    override fun call(arg: LuaValue?): LuaValue? = invoke(arg).arg1()
+    override fun call(arg1: LuaValue?, arg2: LuaValue?): LuaValue? = invoke(varargsOf(arg1, arg2)).arg1()
+    override fun call(arg1: LuaValue?, arg2: LuaValue?, arg3: LuaValue?): LuaValue? =
+        invoke(varargsOf(arg1, arg2, arg3)).arg1()
+
+    override fun invoke(args: Varargs?): Varargs = onInvoke(args).eval()
+    override fun onInvoke(args: Varargs?): Varargs = constructorWrapper.invoke(args)
+
+    override fun typename(): String = "Class:${kClass.qualifiedName}"
+    override fun tostring(): LuaValue = LuaValue.valueOf(toString())
+    override fun toString(): String = m_instance.toString()
 }

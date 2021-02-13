@@ -3,6 +3,11 @@ package com.ooooonly.luakt
 import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
 
+
+@DslMarker
+annotation class LuaTableBuilderMarker
+
+@LuaTableBuilderMarker
 class LuaTableBuilder(var tableValue: LuaTable = LuaTable()) {
 
     infix fun Iterable<*>.nto(value: Any) {
@@ -19,13 +24,15 @@ class LuaTableBuilder(var tableValue: LuaTable = LuaTable()) {
         tableValue[this.asLuaValue()] = value
     }
 
-    infix fun String.map(mapper: (LuaValue) -> Any) {
-        tableValue[this] = mapper(tableValue[this]).asLuaValue()
-    }
-
-    infix fun Any.map(mapper: (LuaValue) -> Any) {
-        tableValue[this] = mapper(tableValue[this]).asLuaValue()
-    }
+//    @LuaTableBuilderMarker
+//    infix fun String.map(mapper: (LuaValue) -> Any) {
+//        tableValue[this] = mapper(tableValue[this]).asLuaValue()
+//    }
+//
+//    @LuaTableBuilderMarker
+//    infix fun Any.map(mapper: (LuaValue) -> Any) {
+//        tableValue[this] = mapper(tableValue[this]).asLuaValue()
+//    }
 
     operator fun LuaValue.unaryPlus() {
         tableValue.insert(tableValue.keyCount(), this)
