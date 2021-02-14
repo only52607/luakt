@@ -14,6 +14,7 @@ class BaseKValueMapper : KValueMapper {
             is Double -> LuaValue.valueOf(obj)
             is Boolean -> LuaValue.valueOf(obj)
             is Unit -> LuaValue.NIL
+            is Void -> LuaValue.NIL
             is Float -> LuaValue.valueOf(obj.toDouble())
             is Long -> LuaValue.valueOf(obj.toDouble())
             is ByteArray -> LuaValue.valueOf(String(obj))
@@ -41,6 +42,7 @@ class BaseLuaValueMapper : LuaValueMapper {
                     .toFloat()
                 Double::class -> if (luaValue.isstring()) luaValue.checkjstring().toDouble() else luaValue.checkdouble()
                 Unit::class -> LuaValue.NIL
+                Void::class -> LuaValue.NIL
                 ByteArray::class -> if (luaValue.isstring()) luaValue.checkjstring()
                     .toByteArray() else throw LuaValueMapFailException("When the target is a ByteArray, the argument must be a String")
                 else -> null
