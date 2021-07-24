@@ -5,7 +5,6 @@ buildscript {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.21"
     }
 }
