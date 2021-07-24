@@ -44,7 +44,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
-          tag: ${{ steps.tagName.outputs.tag }}
           name: ${{ github.repository.name }} ${{ steps.tagName.outputs.tag }}
           draft: false
           prerelease: false
