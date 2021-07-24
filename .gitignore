@@ -4,3 +4,6 @@
 /build
 /.gradle
 /bin
+/src/test
+.classpath
+.project
