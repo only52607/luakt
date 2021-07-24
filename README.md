@@ -1,4 +1,4 @@
-# LuaKt
+# LuaKt [![](https://www.jitpack.io/v/only52607/luakt.svg)](https://www.jitpack.io/#only52607/luakt)
  Luaj extensions that support the Kotlin feature.
 ## Feature
 
@@ -11,7 +11,7 @@
 
 ```gradle
 dependencies {
-    implementation 'com.ooooonly:luakt:1.0.0'
+    implementation 'com.ooooonly:luakt:$luakt_version'
 }
 ```
 
