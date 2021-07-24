@@ -1,6 +1,5 @@
 on:
   push:
-    # Sequence of patterns matched against refs/tags
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
@@ -13,13 +12,14 @@ jobs:
     strategy:
       matrix:
         java: [10]
-    steps: 
+    steps:
+      - uses: olegtarasov/get-tag@v2.1
+        id: tagName
       - name: Checkout code
         uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
-      # add cache to improve workflow execution time
       - name: Cache .gradle/caches
         uses: actions/cache@v1
         with:
@@ -38,22 +38,13 @@ jobs:
         run: ./gradlew clean build -s
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          body: |
-            LuaKt
-            无更新说明
-            -
-          release_name: ${{ github.ref }}
+          tag: ${{ steps.tagName.outputs.tag }}
+          name: ${{ github.repository.name }} ${{ steps.tagName.outputs.tag }}
           draft: false
           prerelease: false
-      - name: Upload release binaries
-        uses: alexellis/upload-assets@0.2.2
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          asset_paths: '["./build/libs/*.jar"]'
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "./build/libs/*.jar"
