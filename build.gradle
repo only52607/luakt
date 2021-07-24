@@ -16,7 +16,7 @@ plugins {
 }
 
 group 'com.ooooonly'
-version '2.0.11'
+version '2.0.12'
 
 repositories {
     maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
