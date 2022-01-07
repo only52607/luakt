@@ -1,30 +1,28 @@
 buildscript {
-    ext.kotlin_version = '1.4.21'
+    ext.kotlin_version = '1.6.10'
     repositories {
         jcenter()
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.21"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10"
     }
 }
 
 plugins {
     id 'java'
     id 'org.jetbrains.kotlin.jvm' version '1.4.21'
-    id "com.jfrog.bintray" version "1.8.4"
 }
 
 group 'com.ooooonly'
-version '2.0.12'
+version '2.1.0'
 
 repositories {
     maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
-    maven { url 'http://maven.aliyun.com/nexus/content/repositories/jcenter' }
     maven { url 'http://maven.aliyun.com/nexus/content/repositories/google' }
     maven { url 'http://maven.aliyun.com/nexus/content/repositories/gradle-plugin' }
     maven { url 'https://www.jitpack.io' }
-    // mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
