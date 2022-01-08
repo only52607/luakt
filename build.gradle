@@ -16,7 +16,7 @@ plugins {
 }
 
 group 'com.ooooonly'
-version '2.1.0-SNAPSHOT'
+version '2.1.2'
 
 repositories {
     maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
@@ -47,11 +47,30 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
+task sourceJar(type: Jar, dependsOn: classes) {
+    classifier 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+tasks.withType(Javadoc).all { enabled = false }
 
 publishing {
     publications {
         maven(MavenPublication) {
             from components.java
+            artifact sourceJar
+            artifact javadocJar
+        }
+        jitpack(MavenPublication) {
+            group 'com.github.only52607'
+            from components.java
+            artifact sourceJar
+            artifact javadocJar
         }
     }
     repositories {
