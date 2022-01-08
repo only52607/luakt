@@ -1,18 +1,24 @@
-package com.ooooonly.luakt.mapper.userdata
+package com.ooooonly.luakt.mapper.impl
 
 import com.ooooonly.luakt.mapper.ValueMapper
+import com.ooooonly.luakt.mapper.userdata.KReflectInfoBuilder
+import com.ooooonly.luakt.mapper.userdata.LuaKotlinFunction
+import com.ooooonly.luakt.mapper.userdata.SimpleKReflectInfoBuilder
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
-import org.luaj.vm2.lib.VarArgFunction
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.jvmErasure
 
-open class KotlinOverloadFunctionWrapper(
+open class LuaKotlinOverloadedFunction(
     private val kFunctions: Collection<KFunction<*>>,
-    private val valueMapper: ValueMapper
-) : VarArgFunction() {
+    private val valueMapper: ValueMapper,
+    kReflectInfoBuilder: KReflectInfoBuilder = SimpleKReflectInfoBuilder
+) : LuaKotlinFunction(
+    if (kFunctions.isEmpty()) throw ParameterNotMatchException("KFunctions is empty.") else kFunctions.first(),
+    kReflectInfoBuilder
+) {
 
-    private val wrappers = kFunctions.map { KotlinFunctionWrapper(it, valueMapper) }
+    private val wrappers = kFunctions.map { LuaKotlinMemberFunction(it, valueMapper, kReflectInfoBuilder) }
 
     override fun onInvoke(args: Varargs?): Varargs {
         if (kFunctions.isEmpty()) throw ParameterNotMatchException("KFunctions is empty.")

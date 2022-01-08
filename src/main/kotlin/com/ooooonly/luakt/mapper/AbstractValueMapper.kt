@@ -23,11 +23,24 @@ abstract class AbstractLuaValueMapper : LuaValueMapper {
             ?: throw CouldNotMapToKValueException("Could not map LuaValue:${luaValue.tojstring()} to ${targetClass?.simpleName}")
     }
 
-    fun appendNext(next: AbstractLuaValueMapper): AbstractLuaValueMapper {
+    fun appendOne(next: AbstractLuaValueMapper): AbstractLuaValueMapper {
         firstLuaValueMapper = firstLuaValueMapper ?: this
         nextLuaValueMapper = next
         next.firstLuaValueMapper = firstLuaValueMapper
         return next
+    }
+
+    fun append(vararg mappers: AbstractLuaValueMapper): AbstractLuaValueMapper = apply {
+        if (mappers.isEmpty()) return@apply
+        firstLuaValueMapper = firstLuaValueMapper ?: this
+        nextLuaValueMapper = mappers[0]
+        val lastIndex = mappers.size - 1
+        for (index in 0..lastIndex) {
+            mappers[index].firstLuaValueMapper = firstLuaValueMapper
+            if (index != lastIndex) {
+                mappers[index].nextLuaValueMapper = mappers[index + 1]
+            }
+        }
     }
 }
 
@@ -40,10 +53,23 @@ abstract class AbstractKValueMapper : KValueMapper {
             ?: throw CouldNotMapToLuaValueException("Could not map $obj to LuaValue")
     }
 
-    fun appendNext(next: AbstractKValueMapper): AbstractKValueMapper {
+    fun appendOne(next: AbstractKValueMapper): AbstractKValueMapper {
         firstKValueMapper = firstKValueMapper ?: this
         nextKValueMapper = next
         next.firstKValueMapper = firstKValueMapper
         return next
+    }
+
+    fun append(vararg mappers: AbstractKValueMapper): AbstractKValueMapper = apply {
+        if (mappers.isEmpty()) return@apply
+        firstKValueMapper = firstKValueMapper ?: this
+        nextKValueMapper = mappers[0]
+        val lastIndex = mappers.size - 1
+        for (index in 0..lastIndex) {
+            mappers[index].firstKValueMapper = firstKValueMapper
+            if (index != lastIndex) {
+                mappers[index].nextKValueMapper = mappers[index + 1]
+            }
+        }
     }
 }

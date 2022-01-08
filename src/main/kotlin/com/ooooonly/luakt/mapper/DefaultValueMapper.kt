@@ -1,32 +1,28 @@
 package com.ooooonly.luakt.mapper
 
 import com.ooooonly.luakt.mapper.impl.*
-import com.ooooonly.luakt.mapper.userdata.ConcurrentKotlinClassWrapperRegistry
-import com.ooooonly.luakt.mapper.userdata.KClassExtensionProvider
+import com.ooooonly.luakt.mapper.userdata.EmptyKClassExtensionProvider
 
-val defaultLuaValueMapper: LuaValueMapper by lazy {
-    UserDataLuaValueMapper().apply {
-        appendNext(
-            BaseLuaValueMapper()
-        ).appendNext(
-            CollectionLuaValueMapper()
-        ).appendNext(
-            OriginalLuaValueMapper()
-        )
-    }
-}
+val defaultValueMapper: ValueMapper by lazy {
+    val defaultLuaValueMapper = RootLuaValueMapper()
+    val defaultKValueMapper = RootKValueMapper()
+    val resultValueMapper = defaultLuaValueMapper + defaultKValueMapper
 
-val defaultKValueMapper: KValueMapper by lazy {
-    BaseKValueMapper().apply {
-        appendNext(
-            CollectionKValueMapper()
-        ).appendNext(
-            UserDataKValueMapper(
-                ConcurrentKotlinClassWrapperRegistry(
-                    this + defaultLuaValueMapper,
-                    kClassExtensionProvider = object : KClassExtensionProvider {}
-                )
-            )
+    defaultLuaValueMapper.append(
+        UserDataLuaValueMapper(),
+        BaseLuaValueMapper(),
+        CollectionLuaValueMapper(),
+        OriginalLuaValueMapper()
+    )
+
+    defaultKValueMapper.append(
+        BaseKValueMapper(),
+        CollectionKValueMapper(),
+        UserDataKValueMapper(
+            SingletonLuaKotlinClassRegistry(resultValueMapper) {
+                LuaKotlinClassImpl(it, resultValueMapper, EmptyKClassExtensionProvider)
+            }
         )
-    }
+    )
+    resultValueMapper
 }

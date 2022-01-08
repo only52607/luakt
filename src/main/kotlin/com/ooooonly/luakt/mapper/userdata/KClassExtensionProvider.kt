@@ -20,3 +20,5 @@ interface KClassExtensionProvider {
         return emptyList()
     }
 }
+
+object EmptyKClassExtensionProvider : KClassExtensionProvider

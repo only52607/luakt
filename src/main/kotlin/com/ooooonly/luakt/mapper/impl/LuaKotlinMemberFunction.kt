@@ -1,20 +1,25 @@
-package com.ooooonly.luakt.mapper.userdata
+package com.ooooonly.luakt.mapper.impl
 
 import com.ooooonly.luakt.mapper.ValueMapper
+import com.ooooonly.luakt.mapper.userdata.KReflectInfoBuilder
+import com.ooooonly.luakt.mapper.userdata.LuaKotlinFunction
+import com.ooooonly.luakt.mapper.userdata.SimpleKReflectInfoBuilder
 import kotlinx.coroutines.runBlocking
 import org.luaj.vm2.Varargs
-import org.luaj.vm2.lib.VarArgFunction
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.callSuspendBy
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
-open class KotlinFunctionWrapper(
-    val kFunction: KFunction<*>,
+open class LuaKotlinMemberFunction(
+    kFunction: KFunction<*>,
     private val valueMapper: ValueMapper,
-    private val kReflectInfoBuilder: KReflectInfoBuilder = SimpleKReflectInfoBuilder
-) : VarArgFunction() {
+    kReflectInfoBuilder: KReflectInfoBuilder = SimpleKReflectInfoBuilder
+) : LuaKotlinFunction(
+    kFunction,
+    kReflectInfoBuilder
+) {
 
     private val parameters: List<KParameter> = kFunction.parameters
 
@@ -75,8 +80,6 @@ open class KotlinFunctionWrapper(
 
         return parametersMap
     }
-
-    override fun toString(): String = kReflectInfoBuilder.buildKFunctionInfo(kFunction)
 }
 
 class ParameterNotMatchException(override val message: String?) : Exception(message)

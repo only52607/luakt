@@ -15,19 +15,19 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
 
-@Suppress("unused")
+@Suppress("unused", "UNCHECKED_CAST")
 class LuaKotlinLib(
     private val coroutineScope: CoroutineScope,
     private val valueMapper: ValueMapper,
-    private val wrapperRegistry: KotlinClassWrapperRegistry
+    private val luaKotlinClassRegistry: LuaKotlinClassRegistry
 ) : TwoArgFunction() {
     override fun call(modname: LuaValue?, env: LuaValue?): LuaValue {
         val globals = env?.checkglobals() ?: return NIL
         val globalsWrapper by lazy {
-            KotlinInstanceWrapper(globals, wrapperRegistry.obtainClassWrapper(globals::class))
+            LuaKotlinObject(globals, luaKotlinClassRegistry.obtainLuaKotlinClass(Globals::class))
         }
         val coroutineScopeWrapper by lazy {
-            KotlinInstanceWrapper(coroutineScope, wrapperRegistry.obtainClassWrapper(coroutineScope::class))
+            LuaKotlinObject(coroutineScope, luaKotlinClassRegistry.obtainLuaKotlinClass(CoroutineScope::class))
         }
         globals.edit {
             "internalGlobals" to luaFunctionOf {
@@ -38,7 +38,7 @@ class LuaKotlinLib(
             }
             "import" to luaFunctionOf { className: String ->
                 val clazz = Class.forName(className).kotlin
-                return@luaFunctionOf wrapperRegistry.obtainClassWrapper(clazz)
+                return@luaFunctionOf luaKotlinClassRegistry.obtainLuaKotlinClass(clazz)
             }
             "importlib" to luaFunctionOf { className: String ->
                 val clazz = Class.forName(className).kotlin
@@ -59,7 +59,7 @@ class LuaKotlinLib(
                 val classes: List<Class<*>> =
                     varargList.take(varargList.size - 1).map { (it.checkuserdata() as KClass<*>).java }
                 val proxyTable = varargList.last().checktable()
-                lateinit var proxyWrapper: KotlinInstanceWrapper
+                lateinit var proxyWrapper: LuaKotlinObject<Any>
                 val proxy = Proxy.newProxyInstance(
                     Globals::class.java.classLoader, classes.toTypedArray()
                 ) { _, method, args ->
@@ -75,7 +75,10 @@ class LuaKotlinLib(
                     return@newProxyInstance proxyMethod.invoke(varargsOf(luaArgs.toTypedArray()))
                         .let { valueMapper.mapToKValueNullable(it.arg1(), returnType) }
                 }
-                proxyWrapper = KotlinInstanceWrapper(proxy, wrapperRegistry.obtainClassWrapper(coroutineScope::class))
+                proxyWrapper = LuaKotlinObject(
+                    proxy as Any,
+                    luaKotlinClassRegistry.obtainLuaKotlinClass(proxy::class as KClass<Any>)
+                )
                 return@varArgFunctionOf proxyWrapper
             }
         }

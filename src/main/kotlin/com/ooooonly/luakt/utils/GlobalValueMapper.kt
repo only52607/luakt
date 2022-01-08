@@ -1,8 +1,6 @@
 package com.ooooonly.luakt.utils
 
-import com.ooooonly.luakt.mapper.defaultKValueMapper
-import com.ooooonly.luakt.mapper.defaultLuaValueMapper
-import com.ooooonly.luakt.mapper.plus
+import com.ooooonly.luakt.mapper.defaultValueMapper
 
 /**
  * ClassName: GlobalValueMapper
@@ -12,4 +10,4 @@ import com.ooooonly.luakt.mapper.plus
  * @version
  */
 
-var globalValueMapper = defaultKValueMapper + defaultLuaValueMapper
+var globalValueMapper = defaultValueMapper
