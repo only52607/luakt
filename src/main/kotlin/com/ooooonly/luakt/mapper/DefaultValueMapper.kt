@@ -1,6 +1,7 @@
 package com.ooooonly.luakt.mapper
 
 import com.ooooonly.luakt.mapper.impl.*
+import com.ooooonly.luakt.mapper.userdata.ConcurrentKotlinClassWrapperRegistry
 import com.ooooonly.luakt.mapper.userdata.KClassExtensionProvider
 
 val defaultLuaValueMapper: LuaValueMapper by lazy {
@@ -21,8 +22,10 @@ val defaultKValueMapper: KValueMapper by lazy {
             CollectionKValueMapper()
         ).appendNext(
             UserDataKValueMapper(
-                valueMapper = this + defaultLuaValueMapper,
-                kClassExtensionProvider = object : KClassExtensionProvider {}
+                ConcurrentKotlinClassWrapperRegistry(
+                    this + defaultLuaValueMapper,
+                    kClassExtensionProvider = object : KClassExtensionProvider {}
+                )
             )
         )
     }
