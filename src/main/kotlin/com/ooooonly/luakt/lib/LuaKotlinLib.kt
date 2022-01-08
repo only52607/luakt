@@ -19,11 +19,7 @@ import kotlin.reflect.jvm.jvmErasure
 class LuaKotlinLib(
     private val coroutineScope: CoroutineScope,
     private val valueMapper: ValueMapper,
-    kClassExtensionProvider: KClassExtensionProvider,
-    private val wrapperRegistry: KotlinClassWrapperRegistry = ConcurrentKotlinClassWrapperRegistry(
-        valueMapper,
-        kClassExtensionProvider
-    )
+    private val wrapperRegistry: KotlinClassWrapperRegistry
 ) : TwoArgFunction() {
     override fun call(modname: LuaValue?, env: LuaValue?): LuaValue {
         val globals = env?.checkglobals() ?: return NIL
