@@ -1,9 +1,12 @@
 package com.ooooonly.luakt.lib
 
 import com.ooooonly.luakt.*
-import com.ooooonly.luakt.mapper.ValueMapperChain
-import com.ooooonly.luakt.mapper.userdata.KotlinClassWrapper
-import com.ooooonly.luakt.mapper.userdata.KotlinInstanceWrapper
+import com.ooooonly.luakt.mapper.ValueMapper
+import com.ooooonly.luakt.mapper.userdata.*
+import com.ooooonly.luakt.utils.edit
+import com.ooooonly.luakt.utils.getOrNull
+import com.ooooonly.luakt.utils.luaFunctionOf
+import com.ooooonly.luakt.utils.varArgFunctionOf
 import kotlinx.coroutines.CoroutineScope
 import org.luaj.vm2.*
 import org.luaj.vm2.lib.TwoArgFunction
@@ -13,15 +16,22 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
 
 @Suppress("unused")
-class LuaKotlinLib(private val coroutineScope: CoroutineScope, private val mapperChain: ValueMapperChain) :
-    TwoArgFunction() {
+class LuaKotlinLib(
+    private val coroutineScope: CoroutineScope,
+    private val valueMapper: ValueMapper,
+    kClassExtensionProvider: KClassExtensionProvider,
+    private val wrapperRegistry: KotlinClassWrapperRegistry = ConcurrentKotlinClassWrapperRegistry(
+        valueMapper,
+        kClassExtensionProvider
+    )
+) : TwoArgFunction() {
     override fun call(modname: LuaValue?, env: LuaValue?): LuaValue {
         val globals = env?.checkglobals() ?: return NIL
         val globalsWrapper by lazy {
-            KotlinInstanceWrapper(globals)
+            KotlinInstanceWrapper(globals, wrapperRegistry.obtainClassWrapper(globals::class))
         }
         val coroutineScopeWrapper by lazy {
-            KotlinInstanceWrapper(coroutineScope)
+            KotlinInstanceWrapper(coroutineScope, wrapperRegistry.obtainClassWrapper(coroutineScope::class))
         }
         globals.edit {
             "internalGlobals" to luaFunctionOf {
@@ -32,7 +42,7 @@ class LuaKotlinLib(private val coroutineScope: CoroutineScope, private val mappe
             }
             "import" to luaFunctionOf { className: String ->
                 val clazz = Class.forName(className).kotlin
-                return@luaFunctionOf KotlinClassWrapper(clazz, ValueMapperChain)
+                return@luaFunctionOf wrapperRegistry.obtainClassWrapper(clazz)
             }
             "importlib" to luaFunctionOf { className: String ->
                 val clazz = Class.forName(className).kotlin
@@ -63,13 +73,13 @@ class LuaKotlinLib(private val coroutineScope: CoroutineScope, private val mappe
                     val luaArgs = mutableListOf<LuaValue>().apply {
                         add(proxyWrapper)
                         args?.forEach {
-                            add(mapperChain.mapToLuaValueNullableInChain(it))
+                            add(valueMapper.mapToLuaValue(it))
                         }
                     }
-                    return@newProxyInstance proxyMethod.invoke(LuaValue.varargsOf(luaArgs.toTypedArray()))
-                        .let { mapperChain.mapToKValueInChain(it.arg1(), returnType) }
+                    return@newProxyInstance proxyMethod.invoke(varargsOf(luaArgs.toTypedArray()))
+                        .let { valueMapper.mapToKValueNullable(it.arg1(), returnType) }
                 }
-                proxyWrapper = KotlinInstanceWrapper(proxy)
+                proxyWrapper = KotlinInstanceWrapper(proxy, wrapperRegistry.obtainClassWrapper(coroutineScope::class))
                 return@varArgFunctionOf proxyWrapper
             }
         }

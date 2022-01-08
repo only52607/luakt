@@ -4,8 +4,6 @@ import org.luaj.vm2.LuaValue
 import kotlin.reflect.KClass
 
 /*
-    LuaJ 数据结构继承树
-
     Varargs
         LuaValue
             LuaUserdata
@@ -26,16 +24,30 @@ import kotlin.reflect.KClass
 */
 
 fun interface KValueMapper {
-    /* Returns null if there is no matching mapper */
-    fun mapToLuaValue(obj: Any, defaultValueMapperChain: ValueMapperChain?): LuaValue?
+    fun mapToLuaValue(obj: Any?): LuaValue
 }
 
-fun interface LuaValueMapper {
-    /* Returns null if there is no matching mapper */
-    fun mapToKValue(luaValue: LuaValue, targetClass: KClass<*>, defaultValueMapperChain: ValueMapperChain?): Any?
+interface LuaValueMapper {
+    // Automatically select an appropriate Mapper when targetClass is null
+    fun mapToKValue(luaValue: LuaValue, targetClass: KClass<*>?): Any
+
+    fun mapToKValueNullable(luaValue: LuaValue, targetClass: KClass<*>?): Any?
+}
+
+inline fun <reified T> LuaValueMapper.mapToKValue(luaValue: LuaValue): T {
+    return mapToKValue(luaValue, T::class) as T
 }
 
 interface ValueMapper : KValueMapper, LuaValueMapper
 
-class KValueMapFailException(override val message: String) : Exception(message)
-class LuaValueMapFailException(override val message: String) : Exception(message)
+private fun buildValueMapper(kValueMapper: KValueMapper, luaValueMapper: LuaValueMapper): ValueMapper {
+    return object : ValueMapper, KValueMapper by kValueMapper, LuaValueMapper by luaValueMapper {}
+}
+
+operator fun KValueMapper.plus(luaValueMapper: LuaValueMapper): ValueMapper = buildValueMapper(this, luaValueMapper)
+
+operator fun LuaValueMapper.plus(kValueMapper: KValueMapper): ValueMapper = buildValueMapper(kValueMapper, this)
+
+class CouldNotMapToLuaValueException(override val message: String) : Exception(message)
+
+class CouldNotMapToKValueException(override val message: String) : Exception(message)

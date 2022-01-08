@@ -1,4 +1,4 @@
-package com.ooooonly.luakt
+package com.ooooonly.luakt.utils
 
 import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue

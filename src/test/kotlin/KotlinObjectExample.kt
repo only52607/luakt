@@ -1,4 +1,4 @@
-import com.ooooonly.luakt.set
+import com.ooooonly.luakt.utils.set
 import kotlinx.coroutines.delay
 import org.luaj.vm2.lib.jse.JsePlatform
 
@@ -44,10 +44,6 @@ fun main() {
     val globals = JsePlatform.standardGlobals()
     val obj = MyKotlinClass()
     globals["obj"] = obj
-//    globals.edit {
-//        //set a kotlin object to lua
-//        "obj" to obj
-//    }
     globals.load(
         """
         print(obj.info)

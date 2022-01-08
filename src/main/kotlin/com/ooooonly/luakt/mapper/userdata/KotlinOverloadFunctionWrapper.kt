@@ -1,6 +1,6 @@
 package com.ooooonly.luakt.mapper.userdata
 
-import com.ooooonly.luakt.mapper.ValueMapperChain
+import com.ooooonly.luakt.mapper.ValueMapper
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.VarArgFunction
@@ -9,10 +9,10 @@ import kotlin.reflect.jvm.jvmErasure
 
 open class KotlinOverloadFunctionWrapper(
     private val kFunctions: Collection<KFunction<*>>,
-    private val mapperChain: ValueMapperChain? = null
+    private val valueMapper: ValueMapper
 ) : VarArgFunction() {
 
-    private val wrappers = kFunctions.map { KotlinFunctionWrapper(it, mapperChain) }
+    private val wrappers = kFunctions.map { KotlinFunctionWrapper(it, valueMapper) }
 
     override fun onInvoke(args: Varargs?): Varargs {
         if (kFunctions.isEmpty()) throw ParameterNotMatchException("KFunctions is empty.")
@@ -30,7 +30,7 @@ open class KotlinOverloadFunctionWrapper(
     override fun tostring(): LuaValue = LuaValue.valueOf(toString())
 
     override fun toString(): String = if (kFunctions.isEmpty()) "" else {
-        "<Overload Function>:[${wrappers.joinToString(separator = "\n") { it.toString() }}]"
+        "<Overload Functions>:[${wrappers.joinToString(separator = "\n") { it.toString() }}]"
     }
 
 }

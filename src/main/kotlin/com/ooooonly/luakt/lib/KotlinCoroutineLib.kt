@@ -1,7 +1,7 @@
 package com.ooooonly.luakt.lib
 
-import com.ooooonly.luakt.edit
-import com.ooooonly.luakt.luaFunctionOf
+import com.ooooonly.luakt.utils.edit
+import com.ooooonly.luakt.utils.luaFunctionOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -17,6 +17,9 @@ class KotlinCoroutineLib(private val coroutineScope: CoroutineScope) : TwoArgFun
         val globals: Globals? = env?.checkglobals()
         globals?.edit {
             "sleep" to luaFunctionOf { time: Long ->
+                runBlocking { delay(time) }
+            }
+            "delay" to luaFunctionOf { time: Long ->
                 runBlocking { delay(time) }
             }
             "launch" to luaFunctionOf { cls: LuaClosure ->

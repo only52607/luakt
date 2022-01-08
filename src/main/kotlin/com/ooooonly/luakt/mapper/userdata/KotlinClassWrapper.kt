@@ -1,8 +1,6 @@
 package com.ooooonly.luakt.mapper.userdata
 
-import com.ooooonly.luakt.asKValue
-import com.ooooonly.luakt.asLuaValue
-import com.ooooonly.luakt.mapper.ValueMapperChain
+import com.ooooonly.luakt.mapper.ValueMapper
 import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaUserdata
 import org.luaj.vm2.LuaValue
@@ -19,44 +17,33 @@ import kotlin.reflect.jvm.jvmErasure
 @Suppress("unused")
 open class KotlinClassWrapper(
     private val kClass: KClass<*>,
-    private val mapperChain: ValueMapperChain? = null
+    private val valueMapper: ValueMapper,
+    private val kClassExtensionProvider: KClassExtensionProvider
 ) : LuaUserdata(kClass) {
-    companion object {
-        private val classes: MutableMap<KClass<*>, KotlinClassWrapper> = Collections.synchronizedMap(HashMap())
-        private val mapperChain = ValueMapperChain.DEFAULT
 
-        fun forKClass(kClass: KClass<*>): KotlinClassWrapper {
-            val wrapper: KotlinClassWrapper? = classes[kClass]
-            if (wrapper != null) return wrapper
-
-            val newWrapper = KotlinClassWrapper(kClass, mapperChain)
-            classes[kClass] = newWrapper
-            return newWrapper
-        }
+    private val associatedStaticProperties: Map<String, KProperty<*>> by lazy {
+        kClass.staticProperties.associateBy(KProperty<*>::name)
     }
 
-    private val staticProperties: Map<String, KProperty<*>> by lazy {
-        kClass.staticProperties.associateBy { it.name }
-    }
-
-    private val staticFunctions: Map<String, List<KFunction<*>>> by lazy {
-        kClass.staticFunctions.groupBy { it.name }
+    private val groupedStaticFunctions: Map<String, List<KFunction<*>>> by lazy {
+        kClass.staticFunctions.groupBy(KFunction<*>::name)
     }
 
     private val overloadStaticFunctionWrappers: Map<String, KotlinOverloadFunctionWrapper> by lazy {
-        staticFunctions.mapValues { KotlinOverloadFunctionWrapper(it.value, mapperChain) }
+        groupedStaticFunctions.mapValues { KotlinOverloadFunctionWrapper(it.value, valueMapper) }
     }
 
-    private val properties: Map<String, KProperty<*>> by lazy {
-        kClass.memberProperties.associateBy { it.name }
+    private val associatedMemberProperties: Map<String, KProperty<*>> by lazy {
+        kClass.memberProperties.plus(kClassExtensionProvider.provideExtensionProperties(kClass))
+            .associateBy(KProperty<*>::name)
     }
 
-    private val functions: Map<String, List<KFunction<*>>> by lazy {
-        kClass.functions.groupBy { it.name }
+    private val groupedFunctions: Map<String, List<KFunction<*>>> by lazy {
+        kClass.functions.plus(kClassExtensionProvider.provideExtensionFunctions(kClass)).groupBy(KFunction<*>::name)
     }
 
     private val overloadFunctionWrappers: Map<String, KotlinOverloadFunctionWrapper> by lazy {
-        functions.mapValues { KotlinOverloadFunctionWrapper(it.value, mapperChain) }
+        groupedFunctions.mapValues { KotlinOverloadFunctionWrapper(it.value, valueMapper) }
     }
 
     private val constructors: Collection<KFunction<*>> by lazy {
@@ -64,35 +51,35 @@ open class KotlinClassWrapper(
     }
 
     private val constructorWrapper: KotlinOverloadFunctionWrapper by lazy {
-        KotlinOverloadFunctionWrapper(constructors, mapperChain)
+        KotlinOverloadFunctionWrapper(constructors, valueMapper)
     }
 
     private val overloadConstructorWrapper: KotlinOverloadFunctionWrapper by lazy {
-        KotlinOverloadFunctionWrapper(constructors.toList(), mapperChain)
+        KotlinOverloadFunctionWrapper(constructors.toList(), valueMapper)
     }
 
     fun containProperty(name: String): Boolean =
-        properties.containsKey(name)
+        associatedMemberProperties.containsKey(name)
 
     fun containFunction(name: String): Boolean =
-        functions.containsKey(name)
+        groupedFunctions.containsKey(name)
 
     fun setProperty(self: KotlinInstanceWrapper, name: String, value: LuaValue) {
-        val property = properties[name] ?: throw Exception("No property $name found.")
+        val property = associatedMemberProperties[name] ?: throw Exception("No property $name found.")
         if (property.isConst) throw Exception("Const property $name could not be set.")
         property.isAccessible = true
         val mutableProperty = property as KMutableProperty
         mutableProperty.setter.call(
             self.m_instance,
-            mapperChain!!.mapToKValueInChain(value, property.returnType.jvmErasure)
+            valueMapper.mapToKValueNullable(value, property.returnType.jvmErasure)
         )
     }
 
     fun getProperty(self: KotlinInstanceWrapper, name: String): LuaValue {
-        val property = properties[name] ?: return LuaValue.NIL
+        val property = associatedMemberProperties[name] ?: return LuaValue.NIL
         property.isAccessible = true
         val result = property.getter.call(self.m_instance) ?: return LuaValue.NIL
-        return mapperChain!!.mapToLuaValueNullableInChain(result)
+        return valueMapper.mapToLuaValue(result)
     }
 
     fun getFunctionWrapper(name: String): KotlinOverloadFunctionWrapper {
@@ -100,10 +87,10 @@ open class KotlinClassWrapper(
     }
 
     fun getAllProperties(self: KotlinInstanceWrapper): LuaTable = LuaTable().apply {
-        properties.forEach { property ->
+        associatedMemberProperties.forEach { property ->
             val value = try {
                 property.value.isAccessible = true
-                mapperChain!!.mapToLuaValueNullableInChain(property.value.getter.call(self.m_instance))
+                valueMapper.mapToLuaValue(property.value.getter.call(self.m_instance))
             } catch (e: Exception) {
                 LuaValue.NIL
             }
@@ -117,8 +104,8 @@ open class KotlinClassWrapper(
 
     override fun get(key: LuaValue?): LuaValue {
         val keyString = key?.checkjstring() ?: return NIL
-        if (staticProperties.containsKey(keyString))
-            return staticProperties[keyString]?.getter?.call()?.asLuaValue() ?: NIL
+        if (associatedStaticProperties.containsKey(keyString))
+            return associatedStaticProperties[keyString]?.getter?.call()?.let(valueMapper::mapToLuaValue) ?: NIL
         if (overloadStaticFunctionWrappers.containsKey(keyString))
             return overloadStaticFunctionWrappers[keyString] ?: NIL
         return NIL
@@ -126,9 +113,10 @@ open class KotlinClassWrapper(
 
     override fun set(key: LuaValue?, value: LuaValue) {
         val keyString = key?.checkjstring() ?: return
-        if (staticProperties.containsKey(keyString)) {
-            val property = staticProperties[keyString] as KMutableProperty
-            property.setter.call(value.asKValue(property.setter.parameters.first().type.jvmErasure))
+        if (associatedStaticProperties.containsKey(keyString)) {
+            val property = associatedStaticProperties[keyString] as KMutableProperty
+            val kValue = valueMapper.mapToKValueNullable(value, property.setter.parameters.first().type.jvmErasure)
+            property.setter.call(kValue)
         }
     }
 
@@ -141,7 +129,7 @@ open class KotlinClassWrapper(
     override fun invoke(args: Varargs?): Varargs = onInvoke(args).eval()
     override fun onInvoke(args: Varargs?): Varargs = constructorWrapper.invoke(args)
 
-    override fun typename(): String = "Class:${kClass.qualifiedName}"
+    override fun typename(): String = kClass.qualifiedName ?: "Unknown KClass"
     override fun tostring(): LuaValue = LuaValue.valueOf(toString())
     override fun toString(): String = m_instance.toString()
 }

@@ -1,9 +1,9 @@
 /build
 /.idea
 /.settings
-/build
 /.gradle
 /bin
 /src/test
 .classpath
 .project
+/src/test/kotlin/

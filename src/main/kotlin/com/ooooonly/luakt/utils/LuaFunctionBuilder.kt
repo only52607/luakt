@@ -1,5 +1,6 @@
-package com.ooooonly.luakt
+package com.ooooonly.luakt.utils
 
+import com.ooooonly.luakt.get
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.VarArgFunction

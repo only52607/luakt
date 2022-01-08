@@ -1,32 +1,34 @@
-package com.ooooonly.luakt
+package com.ooooonly.luakt.utils
 
-import com.ooooonly.luakt.mapper.ValueMapperChain
+import com.ooooonly.luakt.mapper.ValueMapper
 import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-private val mapperChain = ValueMapperChain.DEFAULT
-
-inline fun <reified T : Any?> LuaTable.provideDelegate(key: String? = null, defaultValue: T? = null) =
+inline fun <reified T : Any?> LuaTable.item(
+    key: String? = null,
+    defaultValue: T? = null,
+    valueMapper: ValueMapper = globalValueMapper
+) =
     object : ReadWriteProperty<Any?, T?> {
         override fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
-            set(key ?: property.name, ValueMapperChain.mapToLuaValueNullableInChain(value))
+            set(key ?: property.name, valueMapper.mapToLuaValue(value))
         }
 
         override fun getValue(thisRef: Any?, property: KProperty<*>): T? {
             val result = get(key ?: property.name)
             if (result.isnil()) return defaultValue
-            return ValueMapperChain.mapToKValue(result, T::class, ValueMapperChain.DEFAULT) as T?
+            return valueMapper.mapToKValueNullable(result, T::class) as T?
         }
     }
 
-operator fun LuaTable.get(key: Any): LuaValue = get(mapperChain.mapToLuaValueNullableInChain(key))
+operator fun LuaTable.get(key: Any): LuaValue = get(globalValueMapper.mapToLuaValue(key))
 operator fun LuaTable.set(key: Any, value: Any) =
-    set(mapperChain.mapToLuaValueNullableInChain(key), mapperChain.mapToLuaValueNullableInChain(value))
+    set(globalValueMapper.mapToLuaValue(key), globalValueMapper.mapToLuaValue(value))
 
 fun LuaTable.getOrNull(key: Any): LuaValue? =
-    get(mapperChain.mapToLuaValueNullableInChain(key))?.takeIf { it != LuaValue.NIL }
+    get(globalValueMapper.mapToLuaValue(key))?.takeIf { it != LuaValue.NIL }
 
 fun LuaTable.forEach(process: (key: LuaValue, value: LuaValue) -> Unit) {
     var k: LuaValue = LuaValue.NIL

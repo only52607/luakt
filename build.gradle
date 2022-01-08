@@ -11,11 +11,11 @@ buildscript {
 
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
 }
 
 group 'com.ooooonly'
-version '2.1.0'
+version '2.1.0-SNAPSHOT'
 
 repositories {
     maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
@@ -28,13 +28,14 @@ repositories {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.4.21"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }

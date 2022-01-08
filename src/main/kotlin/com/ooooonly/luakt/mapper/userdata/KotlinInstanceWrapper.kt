@@ -5,7 +5,7 @@ import org.luaj.vm2.LuaValue
 
 open class KotlinInstanceWrapper(
     val instance: Any = Any(),
-    private val kClassWrapper: KotlinClassWrapper = KotlinClassWrapper.forKClass(instance::class)
+    private val kClassWrapper: KotlinClassWrapper
 ) : LuaUserdata(instance) {
 
     override fun get(key: LuaValue): LuaValue {
