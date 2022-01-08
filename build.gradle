@@ -12,6 +12,7 @@ buildscript {
 plugins {
     id 'java'
     id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+    id 'maven-publish'
 }
 
 group 'com.ooooonly'
@@ -44,4 +45,16 @@ compileTestKotlin {
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
+}
+
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        mavenCentral()
+    }
 }
