@@ -77,7 +77,7 @@ class LuaKotlinLib(
                 }
                 proxyWrapper = LuaKotlinObject(
                     proxy as Any,
-                    luaKotlinClassRegistry.obtainLuaKotlinClass(proxy::class as KClass<Any>)
+                    luaKotlinClassRegistry.obtainLuaKotlinClass(Any::class)
                 )
                 return@varArgFunctionOf proxyWrapper
             }
