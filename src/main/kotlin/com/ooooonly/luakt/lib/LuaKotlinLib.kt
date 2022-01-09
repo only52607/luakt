@@ -59,7 +59,7 @@ class LuaKotlinLib(
                 val classes: List<Class<*>> =
                     varargList.take(varargList.size - 1).map { (it.checkuserdata() as KClass<*>).java }
                 val proxyTable = varargList.last().checktable()
-                lateinit var proxyWrapper: LuaKotlinObject<Any>
+                lateinit var proxyWrapper: LuaKotlinObject
                 val proxy = Proxy.newProxyInstance(
                     Globals::class.java.classLoader, classes.toTypedArray()
                 ) { _, method, args ->
