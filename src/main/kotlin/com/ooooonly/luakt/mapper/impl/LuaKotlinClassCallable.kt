@@ -16,7 +16,7 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
 @Suppress("unused")
-open class LuaKotlinClassImpl(
+open class LuaKotlinClassCallable(
     kClass: KClass<*>,
     private val valueMapper: ValueMapper,
     private val kClassExtensionProvider: KClassExtensionProvider

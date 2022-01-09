@@ -20,7 +20,7 @@ val defaultValueMapper: ValueMapper by lazy {
         CollectionKValueMapper(),
         UserDataKValueMapper(
             SingletonLuaKotlinClassRegistry {
-                LuaKotlinClassImpl(it, resultValueMapper, EmptyKClassExtensionProvider)
+                LuaKotlinClassCallable(it, resultValueMapper, EmptyKClassExtensionProvider)
             }
         )
     )
