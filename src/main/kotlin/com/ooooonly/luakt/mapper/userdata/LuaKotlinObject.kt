@@ -2,8 +2,8 @@ package com.ooooonly.luakt.mapper.userdata
 
 import org.luaj.vm2.LuaValue
 
-open class LuaKotlinObject<T : Any>(
-    val instance: T,
+open class LuaKotlinObject(
+    val instance: Any,
     private val luaKotlinClass: LuaKotlinClass
 ) : LuaKotlinUserdata(instance) {
 
