@@ -4,7 +4,7 @@ import org.luaj.vm2.LuaValue
 
 open class LuaKotlinObject<T : Any>(
     val instance: T,
-    private val luaKotlinClass: LuaKotlinClass<T>
+    private val luaKotlinClass: LuaKotlinClass
 ) : LuaKotlinUserdata(instance) {
 
     override fun get(key: LuaValue): LuaValue {

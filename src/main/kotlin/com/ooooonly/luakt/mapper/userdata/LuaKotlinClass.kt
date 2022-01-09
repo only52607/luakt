@@ -11,20 +11,20 @@ import kotlin.reflect.KClass
  * @author ooooonly
  * @version
  */
-abstract class LuaKotlinClass<T : Any>(
-    val kClass: KClass<T>
+abstract class LuaKotlinClass(
+    val kClass: KClass<*>
 ) : LuaKotlinUserdata(kClass) {
     abstract fun containsProperty(name: String): Boolean
 
     abstract fun containsFunction(name: String): Boolean
 
-    abstract fun setProperty(self: T, name: String, value: LuaValue)
+    abstract fun setProperty(self: Any, name: String, value: LuaValue)
 
-    abstract fun getProperty(self: T, name: String): LuaValue
+    abstract fun getProperty(self: Any, name: String): LuaValue
 
     abstract fun getFunction(name: String): LuaValue
 
-    abstract fun getAllProperties(self: T): LuaTable
+    abstract fun getAllProperties(self: Any): LuaTable
 
     abstract fun getAllFunctions(): LuaTable
 }

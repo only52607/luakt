@@ -16,11 +16,11 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
 @Suppress("unused")
-open class LuaKotlinClassImpl<T : Any>(
-    kClass: KClass<T>,
+open class LuaKotlinClassImpl(
+    kClass: KClass<*>,
     private val valueMapper: ValueMapper,
     private val kClassExtensionProvider: KClassExtensionProvider
-) : LuaKotlinClass<T>(kClass) {
+) : LuaKotlinClass(kClass) {
 
     private val associatedStaticProperties: Map<String, KProperty<*>> by lazy {
         kClass.staticProperties.associateBy(KProperty<*>::name)
@@ -65,7 +65,7 @@ open class LuaKotlinClassImpl<T : Any>(
     override fun containsFunction(name: String): Boolean =
         groupedFunctions.containsKey(name)
 
-    override fun setProperty(self: T, name: String, value: LuaValue) {
+    override fun setProperty(self: Any, name: String, value: LuaValue) {
         val property = associatedMemberProperties[name] ?: throw Exception("No property $name found.")
         if (property.isConst) throw Exception("Const property $name could not be set.")
         property.isAccessible = true
@@ -76,14 +76,14 @@ open class LuaKotlinClassImpl<T : Any>(
         )
     }
 
-    override fun getProperty(self: T, name: String): LuaValue {
+    override fun getProperty(self: Any, name: String): LuaValue {
         val property = associatedMemberProperties[name] ?: return LuaValue.NIL
         property.isAccessible = true
         val result = property.getter.call(self) ?: return LuaValue.NIL
         return valueMapper.mapToLuaValue(result)
     }
 
-    override fun getAllProperties(self: T): LuaTable = LuaTable().apply {
+    override fun getAllProperties(self: Any): LuaTable = LuaTable().apply {
         associatedMemberProperties.forEach { property ->
             val value = try {
                 property.value.isAccessible = true

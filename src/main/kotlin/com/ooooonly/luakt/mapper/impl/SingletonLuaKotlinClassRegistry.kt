@@ -1,6 +1,5 @@
 package com.ooooonly.luakt.mapper.impl
 
-import com.ooooonly.luakt.mapper.ValueMapper
 import com.ooooonly.luakt.mapper.userdata.LuaKotlinClass
 import com.ooooonly.luakt.mapper.userdata.LuaKotlinClassRegistry
 import java.util.concurrent.ConcurrentHashMap
@@ -14,17 +13,16 @@ import kotlin.reflect.KClass
  * @version
  */
 class SingletonLuaKotlinClassRegistry(
-    private val valueMapper: ValueMapper,
-    private val builder: (kClass: KClass<*>) -> LuaKotlinClass<*>
+    private val builder: (kClass: KClass<*>) -> LuaKotlinClass
 ) : LuaKotlinClassRegistry {
-    private val luaKotlinClasses = ConcurrentHashMap<KClass<*>, LuaKotlinClass<*>>()
+    private val luaKotlinClasses = ConcurrentHashMap<KClass<*>, LuaKotlinClass>()
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> obtainLuaKotlinClass(kClass: KClass<T>): LuaKotlinClass<T> {
-        val lk: LuaKotlinClass<*>? = luaKotlinClasses[kClass]
-        if (lk != null) return lk as LuaKotlinClass<T>
+    override fun obtainLuaKotlinClass(kClass: KClass<*>): LuaKotlinClass {
+        val lk: LuaKotlinClass? = luaKotlinClasses[kClass]
+        if (lk != null) return lk
         val newLk = builder(kClass)
         luaKotlinClasses[kClass] = newLk
-        return newLk as LuaKotlinClass<T>
+        return newLk
     }
 }
