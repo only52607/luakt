@@ -137,5 +137,5 @@ class ValueMapperScope(
         }
 }
 
-fun ValueMapper.provideScope(block: ValueMapperScope.() -> Unit) =
+fun <T> ValueMapper.provideScope(block: ValueMapperScope.() -> T): T =
     ValueMapperScope(this).block()
