@@ -5,30 +5,41 @@ import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
+import kotlin.reflect.jvm.jvmErasure
 
-inline fun <reified T : Any?> LuaTable.item(
-    key: String? = null,
-    defaultValue: T? = null,
-    valueMapper: ValueMapper = globalValueMapper
-) =
-    object : ReadWriteProperty<Any?, T?> {
-        override fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
-            set(key ?: property.name, valueMapper.mapToLuaValue(value))
-        }
 
-        override fun getValue(thisRef: Any?, property: KProperty<*>): T? {
-            val result = get(key ?: property.name)
-            if (result.isnil()) return defaultValue
-            return valueMapper.mapToKValueNullable(result, T::class) as T?
-        }
+class LuaTableEntryProperty<T : Any?>(
+    private val valueMapper: ValueMapper,
+    private val table: LuaTable,
+    private val key: String? = null,
+    private val defaultValue: T? = null
+) : ReadWriteProperty<Any?, T?> {
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
+        table.set(key ?: property.name, valueMapper.mapToLuaValue(value))
     }
 
-operator fun LuaTable.get(key: Any): LuaValue = get(globalValueMapper.mapToLuaValue(key))
-operator fun LuaTable.set(key: Any, value: Any) =
-    set(globalValueMapper.mapToLuaValue(key), globalValueMapper.mapToLuaValue(value))
+    @Suppress("UNCHECKED_CAST")
+    override fun getValue(thisRef: Any?, property: KProperty<*>): T? {
+        val result = table.get(key ?: property.name)
+        if (result.isnil()) return defaultValue
+        return valueMapper.mapToKValueNullable(result, property.returnType.jvmErasure) as T?
+    }
+}
 
-fun LuaTable.getOrNull(key: Any): LuaValue? =
-    get(globalValueMapper.mapToLuaValue(key))?.takeIf { it != LuaValue.NIL }
+fun <T : Any?> LuaTable.entry(
+    valueMapper: ValueMapper,
+    key: String? = null,
+    defaultValue: T? = null
+) = LuaTableEntryProperty(valueMapper, this, key, defaultValue)
+
+operator fun LuaTable.get(key: Any, valueMapper: ValueMapper): LuaValue =
+    get(valueMapper.mapToLuaValue(key))
+
+operator fun LuaTable.set(key: Any, value: Any, valueMapper: ValueMapper) =
+    set(valueMapper.mapToLuaValue(key), valueMapper.mapToLuaValue(value))
+
+fun LuaTable.getOrNull(key: Any, valueMapper: ValueMapper): LuaValue? =
+    get(valueMapper.mapToLuaValue(key))?.takeIf { it != LuaValue.NIL }
 
 fun LuaTable.forEach(process: (key: LuaValue, value: LuaValue) -> Unit) {
     var k: LuaValue = LuaValue.NIL
