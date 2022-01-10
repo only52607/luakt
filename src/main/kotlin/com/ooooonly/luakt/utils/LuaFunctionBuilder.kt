@@ -1,6 +1,5 @@
 package com.ooooonly.luakt.utils
 
-import com.ooooonly.luakt.get
 import com.ooooonly.luakt.mapper.ValueMapper
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
