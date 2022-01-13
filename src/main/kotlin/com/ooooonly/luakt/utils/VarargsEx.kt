@@ -13,6 +13,11 @@ fun Varargs.forEach(block: (LuaValue) -> Unit) {
         block(arg(i))
 }
 
+fun Varargs.forEachIndexed(block: (LuaValue, Int) -> Unit) {
+    for (i in 1..narg())
+        block(arg(i), i)
+}
+
 fun Varargs.toList() = mutableListOf<LuaValue>().apply {
     this@toList.forEach {
         add(it)
