@@ -1,4 +1,3 @@
-import com.ooooonly.luakt.utils.set
 import kotlinx.coroutines.delay
 import org.luaj.vm2.lib.jse.JsePlatform
 
@@ -43,7 +42,7 @@ class InnerClass {
 fun main() {
     val globals = JsePlatform.standardGlobals()
     val obj = MyKotlinClass()
-    globals["obj"] = obj
+//    globals["obj"] = obj
     globals.load(
         """
         print(obj.info)
