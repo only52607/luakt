@@ -1,11 +1,9 @@
-package com.github.only52607.luakt.userdata.impl
+package com.github.only52607.luakt.mappers
 
-import com.github.only52607.luakt.mappers.AbstractKValueMapper
-import com.github.only52607.luakt.mappers.AbstractLuaValueMapper
-import com.github.only52607.luakt.mappers.KValueMapper
-import com.github.only52607.luakt.mappers.LuaValueMapper
-import com.github.only52607.luakt.userdata.LuaKotlinClassRegistry
+import com.github.only52607.luakt.KValueMapper
+import com.github.only52607.luakt.LuaValueMapper
 import com.github.only52607.luakt.userdata.LuaKotlinObject
+import com.github.only52607.luakt.userdata.classes.LuaKotlinClassRegistry
 import org.luaj.vm2.LuaUserdata
 import org.luaj.vm2.LuaValue
 import kotlin.reflect.KClass

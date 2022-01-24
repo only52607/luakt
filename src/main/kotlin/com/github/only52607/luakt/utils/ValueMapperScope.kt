@@ -1,5 +1,6 @@
 package com.github.only52607.luakt.utils
 
+import com.github.only52607.luakt.LuaValueFieldProperty
 import com.github.only52607.luakt.ValueMapper
 import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
@@ -12,7 +13,7 @@ import kotlin.reflect.KClass
  * @author ooooonly
  * @version
  */
-class ValueMapperScope(
+abstract class ValueMapperScope(
     val valueMapper: ValueMapper
 ) {
     inline fun <reified T> LuaValue.asKValue(): T = asKValue(valueMapper)
@@ -23,10 +24,10 @@ class ValueMapperScope(
 
     fun Any?.asLuaValue(): LuaValue = valueMapper.mapToLuaValue(this)
 
-//    fun <T : Any?> LuaTable.field(
-//        key: String? = null,
-//        defaultValue: T? = null
-//    ) = field(valueMapper, key, defaultValue)
+    fun <T : Any?> LuaValue.field(
+        key: String? = null,
+        defaultValue: T? = null
+    ) = LuaValueFieldProperty(valueMapper, this, key, defaultValue)
 
     operator fun LuaTable.get(key: Any): LuaValue =
         get(key, valueMapper)
@@ -37,10 +38,10 @@ class ValueMapperScope(
     fun LuaTable.getOrNull(key: Any): LuaValue? =
         getOrNull(key, valueMapper)
 
-    inline fun buildLuaTable(builder: LuaTableBuilder.() -> Unit): LuaTable =
+    inline fun buildLuaTable(builder: LuaTableBuilderScope.() -> Unit): LuaTable =
         buildLuaTable(valueMapper, builder)
 
-    inline fun LuaTable.edit(process: LuaTableBuilder.() -> Unit) =
+    inline fun LuaTable.edit(process: LuaTableBuilderScope.() -> Unit) =
         edit(valueMapper, process)
 
     fun luaFunctionOf(block: () -> Any) = varArgFunctionOf {
@@ -138,4 +139,4 @@ class ValueMapperScope(
 }
 
 fun <T> ValueMapper.provideScope(block: ValueMapperScope.() -> T): T =
-    ValueMapperScope(this).block()
+    object : ValueMapperScope(this) {}.block()

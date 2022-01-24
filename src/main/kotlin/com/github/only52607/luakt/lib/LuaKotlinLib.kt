@@ -2,6 +2,7 @@ package com.github.only52607.luakt.lib
 
 import com.github.only52607.luakt.*
 import com.github.only52607.luakt.userdata.*
+import com.github.only52607.luakt.userdata.classes.LuaKotlinClassRegistry
 import com.github.only52607.luakt.utils.*
 import kotlinx.coroutines.CoroutineScope
 import org.luaj.vm2.*
@@ -51,7 +52,7 @@ class LuaKotlinLib(
                     return@luaFunctionOf globals.load(lib as LuaValue)
                 }
                 "createProxy" to varArgFunctionOf { varargs: Varargs ->
-                    val varargList = varargs.toList()
+                    val varargList = varargs.toLuaValueList()
                     if (varargList.size < 2) throw LuaError("No enough parameters.")
                     val classes: List<Class<*>> =
                         varargList.take(varargList.size - 1).map { (it.checkuserdata() as KClass<*>).java }

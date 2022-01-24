@@ -1,3 +1,4 @@
+import com.github.only52607.luakt.mappers.defaultValueMapper
 import kotlinx.coroutines.delay
 import org.luaj.vm2.lib.jse.JsePlatform
 
@@ -42,7 +43,7 @@ class InnerClass {
 fun main() {
     val globals = JsePlatform.standardGlobals()
     val obj = MyKotlinClass()
-//    globals["obj"] = obj
+    globals.set("obj", defaultValueMapper.mapToLuaValue(obj))
     globals.load(
         """
         print(obj.info)

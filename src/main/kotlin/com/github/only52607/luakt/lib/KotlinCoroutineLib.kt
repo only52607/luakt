@@ -1,6 +1,7 @@
 package com.github.only52607.luakt.lib
 
-import com.github.only52607.luakt.mappers.ValueMapper
+import com.github.only52607.luakt.ValueMapper
+import com.github.only52607.luakt.utils.provideScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

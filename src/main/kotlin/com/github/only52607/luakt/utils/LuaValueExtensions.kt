@@ -1,7 +1,9 @@
+@file:Suppress("UNUSED")
 package com.github.only52607.luakt.utils
 
 import com.github.only52607.luakt.KValueMapper
 import com.github.only52607.luakt.LuaValueMapper
+import com.github.only52607.luakt.ValueMapper
 import org.luaj.vm2.*
 import kotlin.reflect.KClass
 
@@ -106,3 +108,30 @@ val ByteArray.luaValue: LuaValue
 
 val Array<LuaValue>.luaListValue: LuaTable
     get() = LuaValue.listOf(this)
+
+
+operator fun LuaValue.get(key: Any, valueMapper: ValueMapper): LuaValue =
+    get(valueMapper.mapToLuaValue(key))
+
+operator fun LuaValue.set(key: Any, value: Any, valueMapper: ValueMapper) =
+    set(valueMapper.mapToLuaValue(key), valueMapper.mapToLuaValue(value))
+
+fun LuaValue.getOrNull(key: Any, valueMapper: ValueMapper): LuaValue? =
+    get(valueMapper.mapToLuaValue(key))?.takeIf { it != LuaValue.NIL }
+
+fun LuaValue.forEach(process: (key: LuaValue, value: LuaValue) -> Unit) {
+    var k: LuaValue = LuaValue.NIL
+    while (true) {
+        val n = next(k)
+        k = n.arg1()
+        if (k.isnil())
+            break
+        val v = n.arg(2)
+        process(k, v)
+    }
+}
+
+@Deprecated("Using applyFrom instead")
+fun LuaValue.setFrom(luaTable: LuaTable) {
+    luaTable.forEach { key, value -> set(key, value) }
+}

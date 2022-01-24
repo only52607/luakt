@@ -1,6 +1,5 @@
-package com.github.only52607.luakt.userdata
+package com.github.only52607.luakt.userdata.classes
 
-import com.github.only52607.luakt.userdata.classes.LuaKotlinClass
 import kotlin.reflect.KClass
 
 /**

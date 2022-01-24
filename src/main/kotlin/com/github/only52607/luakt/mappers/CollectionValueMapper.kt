@@ -1,6 +1,8 @@
-package com.github.only52607.luakt.userdata.impl
+package com.github.only52607.luakt.mappers
 
-import com.github.only52607.luakt.mappers.*
+import com.github.only52607.luakt.CouldNotMapToLuaValueException
+import com.github.only52607.luakt.KValueMapper
+import com.github.only52607.luakt.LuaValueMapper
 import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
 import kotlin.reflect.KClass

@@ -1,6 +1,6 @@
 package com.github.only52607.luakt.utils
 
-import com.github.only52607.luakt.mappers.ValueMapper
+import com.github.only52607.luakt.ValueMapper
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.VarArgFunction

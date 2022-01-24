@@ -8,10 +8,10 @@ import org.luaj.vm2.LuaValue
 annotation class LuaTableBuilderMarker
 
 @LuaTableBuilderMarker
-class LuaTableBuilder(
-    val valueMapper: ValueMapper,
+class LuaTableBuilderScope(
+    valueMapper: ValueMapper,
     val tableValue: LuaTable = LuaTable()
-) {
+) : ValueMapperScope(valueMapper) {
     infix fun Iterable<*>.nto(value: Any) {
         forEach {
             tableValue.set(valueMapper.mapToLuaValue(it), valueMapper.mapToLuaValue(value))
@@ -35,11 +35,11 @@ class LuaTableBuilder(
     fun get(key: Any): LuaValue = tableValue.rawget(key.asLuaValue(valueMapper))
 }
 
-inline fun buildLuaTable(valueMapper: ValueMapper, builder: LuaTableBuilder.() -> Unit): LuaTable =
-    LuaTableBuilder(valueMapper)
+inline fun buildLuaTable(valueMapper: ValueMapper, builder: LuaTableBuilderScope.() -> Unit): LuaTable =
+    LuaTableBuilderScope(valueMapper)
         .apply { builder() }.tableValue
 
-inline fun LuaTable.edit(valueMapper: ValueMapper, process: LuaTableBuilder.() -> Unit) = LuaTableBuilder(
+inline fun LuaTable.edit(valueMapper: ValueMapper, process: LuaTableBuilderScope.() -> Unit) = LuaTableBuilderScope(
     valueMapper,
     this
 ).process()
