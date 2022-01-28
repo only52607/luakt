@@ -52,7 +52,7 @@ class LuaKotlinLib(
                     return@luaFunctionOf globals.load(lib as LuaValue)
                 }
                 "createProxy" to varArgFunctionOf { varargs: Varargs ->
-                    val varargList = varargs.toLuaValueList()
+                    val varargList = varargs.varargsToLuaValueList()
                     if (varargList.size < 2) throw LuaError("No enough parameters.")
                     val classes: List<Class<*>> =
                         varargList.take(varargList.size - 1).map { (it.checkuserdata() as KClass<*>).java }
