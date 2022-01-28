@@ -10,23 +10,23 @@ import org.luaj.vm2.Varargs
  */
 operator fun Varargs.get(index: Int): LuaValue = arg(index)
 
-fun Varargs.forEach(block: (LuaValue) -> Unit) {
+fun Varargs.forEachVararg(block: (LuaValue) -> Unit) {
     for (i in 1..narg())
         block(arg(i))
 }
 
-fun Varargs.forEachIndexed(block: (LuaValue, Int) -> Unit) {
+fun Varargs.forEachVarargIndexed(block: (LuaValue, Int) -> Unit) {
     for (i in 1..narg())
         block(arg(i), i)
 }
 
-fun Varargs.toLuaValueList(): List<LuaValue> = mutableListOf<LuaValue>().apply {
-    this@toLuaValueList.forEach {
+fun Varargs.varargsToLuaValueList(): List<LuaValue> = mutableListOf<LuaValue>().apply {
+    this@varargsToLuaValueList.forEachVararg {
         add(it)
     }
 }
 
-fun Varargs.toLuaValueArray() = toLuaValueList().toTypedArray()
+fun Varargs.varargsTotoLuaValueArray() = varargsToLuaValueList().toTypedArray()
 
 fun varargsOf(vararg luaValues: LuaValue) {
     LuaValue.varargsOf(luaValues)
