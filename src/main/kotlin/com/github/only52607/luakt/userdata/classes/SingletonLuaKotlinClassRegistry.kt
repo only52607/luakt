@@ -11,13 +11,13 @@ import kotlin.reflect.KClass
  * @version
  */
 class SingletonLuaKotlinClassRegistry(
-    private val builder: (kClass: KClass<*>) -> LuaKotlinClass
+    private val builder: (kClass: KClass<*>) -> AbstractLuaKotlinClass
 ) : LuaKotlinClassRegistry {
-    private val luaKotlinClasses = ConcurrentHashMap<KClass<*>, LuaKotlinClass>()
+    private val luaKotlinClasses = ConcurrentHashMap<KClass<*>, AbstractLuaKotlinClass>()
 
     @Suppress("UNCHECKED_CAST")
-    override fun obtainLuaKotlinClass(kClass: KClass<*>): LuaKotlinClass {
-        val lk: LuaKotlinClass? = luaKotlinClasses[kClass]
+    override fun obtainLuaKotlinClass(kClass: KClass<*>): AbstractLuaKotlinClass {
+        val lk: AbstractLuaKotlinClass? = luaKotlinClasses[kClass]
         if (lk != null) return lk
         val newLk = builder(kClass)
         luaKotlinClasses[kClass] = newLk

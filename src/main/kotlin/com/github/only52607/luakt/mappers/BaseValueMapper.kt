@@ -4,9 +4,8 @@ import com.github.only52607.luakt.CouldNotMapToKValueException
 import com.github.only52607.luakt.KValueMapper
 import com.github.only52607.luakt.LuaValueMapper
 import org.luaj.vm2.LuaValue
-import org.luaj.vm2.Varargs
 import kotlin.reflect.KClass
-import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSuperclassOf
 
 class BaseKValueMapper(
     override var nextKValueMapper: KValueMapper? = null,
@@ -49,7 +48,7 @@ class BaseLuaValueMapper(
             else -> nextMapToKValue(luaValue, targetClass)
         }
 
-        if (targetClass.isSubclassOf(Varargs::class)) return luaValue
+        if (targetClass::class.isSuperclassOf(luaValue::class)) return luaValue
 
         return when (targetClass) {
             Byte::class -> luaValue.toint()

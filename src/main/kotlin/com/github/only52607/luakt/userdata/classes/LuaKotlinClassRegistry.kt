@@ -11,5 +11,5 @@ import kotlin.reflect.KClass
  */
 
 interface LuaKotlinClassRegistry {
-    fun obtainLuaKotlinClass(kClass: KClass<*>): LuaKotlinClass
+    fun obtainLuaKotlinClass(kClass: KClass<*>): AbstractLuaKotlinClass
 }

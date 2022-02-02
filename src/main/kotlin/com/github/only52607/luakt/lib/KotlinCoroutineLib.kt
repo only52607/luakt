@@ -30,6 +30,6 @@ class KotlinCoroutineLib(private val coroutineScope: CoroutineScope, val valueMa
                 }
             }
         }
-        return globals
+        return NIL
     }
 }

@@ -2,8 +2,8 @@ package com.github.only52607.luakt.mappers
 
 import com.github.only52607.luakt.ValueMapper
 import com.github.only52607.luakt.plus
-import com.github.only52607.luakt.userdata.EmptyKClassExtensionProvider
-import com.github.only52607.luakt.userdata.classes.LuaKotlinClassCallable
+import com.github.only52607.luakt.userdata.classes.EmptyKClassExtensionProvider
+import com.github.only52607.luakt.userdata.classes.LuaKotlinClass
 import com.github.only52607.luakt.userdata.classes.SingletonLuaKotlinClassRegistry
 
 val defaultValueMapper: ValueMapper by lazy {
@@ -23,7 +23,7 @@ val defaultValueMapper: ValueMapper by lazy {
         CollectionKValueMapper(),
         UserDataKValueMapper(
             SingletonLuaKotlinClassRegistry {
-                LuaKotlinClassCallable(it, resultValueMapper, EmptyKClassExtensionProvider)
+                LuaKotlinClass(it, resultValueMapper, EmptyKClassExtensionProvider)
             }
         )
     )
