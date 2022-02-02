@@ -48,7 +48,7 @@ class BaseLuaValueMapper(
             else -> nextMapToKValue(luaValue, targetClass)
         }
 
-        if (targetClass::class.isSuperclassOf(luaValue::class)) return luaValue
+        if (targetClass.isSuperclassOf(luaValue::class)) return luaValue
 
         return when (targetClass) {
             Byte::class -> luaValue.toint()
