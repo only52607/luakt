@@ -1,6 +1,5 @@
 package com.github.only52607.luakt.mappers
 
-import com.github.only52607.luakt.CouldNotMapToKValueException
 import com.github.only52607.luakt.KValueMapper
 import com.github.only52607.luakt.LuaValueMapper
 import org.luaj.vm2.LuaValue
@@ -23,10 +22,8 @@ class BaseKValueMapper(
             is Double -> LuaValue.valueOf(obj)
             is Boolean -> LuaValue.valueOf(obj)
             is Unit -> LuaValue.NIL
-            is Void -> LuaValue.NIL
             is Float -> LuaValue.valueOf(obj.toDouble())
             is Long -> LuaValue.valueOf(obj.toDouble())
-            is ByteArray -> LuaValue.valueOf(String(obj))
             else -> nextMapToLuaValue(obj)
         }
     }
@@ -63,8 +60,6 @@ class BaseLuaValueMapper(
             Double::class -> if (luaValue.isstring()) luaValue.checkjstring().toDouble() else luaValue.checkdouble()
             Unit::class -> Unit
             Void::class -> Unit
-            ByteArray::class -> if (luaValue.isstring()) luaValue.checkjstring()
-                .toByteArray() else throw CouldNotMapToKValueException("When the target is a ByteArray, the argument must be a String")
             else -> nextMapToKValue(luaValue, targetClass)
         }
     }
