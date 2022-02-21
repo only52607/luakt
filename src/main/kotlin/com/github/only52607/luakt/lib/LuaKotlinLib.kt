@@ -6,10 +6,7 @@ import com.github.only52607.luakt.mappers.CollectionLuaValueMapper
 import com.github.only52607.luakt.userdata.classes.LuaKotlinClassRegistry
 import com.github.only52607.luakt.userdata.objects.LuaKotlinObject
 import com.github.only52607.luakt.userdata.objects.LuaKotlinProxy
-import com.github.only52607.luakt.utils.forEach
-import com.github.only52607.luakt.utils.luaFunctionOf
-import com.github.only52607.luakt.utils.unpackVarargs
-import com.github.only52607.luakt.utils.varArgFunctionOf
+import com.github.only52607.luakt.utils.*
 import kotlinx.coroutines.CoroutineScope
 import org.luaj.vm2.LuaError
 import org.luaj.vm2.LuaValue
@@ -25,10 +22,9 @@ class LuaKotlinLib(
     private val classLoader: ClassLoader = LuaKotlinLib::class.java.classLoader
 ) : TwoArgFunction(), ValueMapper by valueMapper {
     override fun call(modname: LuaValue?, env: LuaValue?): LuaValue {
-        val globals = env?.checkglobals() ?: return NIL
-        val collectionKValueMapper = CollectionKValueMapper(firstKValueMapper = this)
-        val collectionLuaValueMapper = CollectionLuaValueMapper(firstLuaValueMapper = this)
-        with(globals) {
+        return luaTableOf {
+            val collectionKValueMapper = CollectionKValueMapper(firstKValueMapper = this@LuaKotlinLib)
+            val collectionLuaValueMapper = CollectionLuaValueMapper(firstLuaValueMapper = this@LuaKotlinLib)
             this["functions"] = luaFunctionOf { value: LuaValue ->
                 if (value is LuaKotlinObject) {
                     return@luaFunctionOf value.luaKotlinClass.getAllMemberFunctions()
@@ -76,7 +72,6 @@ class LuaKotlinLib(
                     loader = classLoader
                 )
             }
-        }
-        return NIL
+        }.also { env?.get("package")?.get("loaded")?.set("luakotlin", it) }
     }
 }
