@@ -11,9 +11,15 @@ import org.luaj.vm2.LuaValue
  * @version
  */
 abstract class LuaKotlinUserdata(
-    instance: Any,
+    instance: Any? = null,
     metatable: LuaValue? = null
 ) : LuaUserdata(
     instance,
     metatable
-)
+) {
+    var instance: Any?
+        get() = m_instance
+        set(value) {
+            m_instance = value
+        }
+}
