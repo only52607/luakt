@@ -1,17 +1,18 @@
 @file:Suppress("UNUSED")
+
 package com.github.only52607.luakt.utils
 
-import com.github.only52607.luakt.*
+import com.github.only52607.luakt.KValueMapper
+import com.github.only52607.luakt.LuaValueMapper
+import com.github.only52607.luakt.ValueMapper
 import org.luaj.vm2.*
 import kotlin.reflect.KClass
 
-context (LuaValueMapper)
-fun LuaValue.asKValue(
+context (LuaValueMapper)fun LuaValue.asKValue(
     targetClass: KClass<*>? = null
 ): Any = mapToKValue(this, targetClass)
 
-context (LuaValueMapper)
-inline fun <reified T> LuaValue.asKValue(): T =
+context (LuaValueMapper)inline fun <reified T> LuaValue.asKValue(): T =
     asKValue(T::class) as T
 
 val LuaValue.nullable: LuaValue?
@@ -108,48 +109,38 @@ val Array<LuaValue>.luaListValue: LuaTable
 
 // getters
 
-context (ValueMapper)
-operator fun LuaValue.get(key: Any): LuaValue =
-    get(mapToLuaValue(key))
+context (ValueMapper)operator fun LuaValue.get(key: Any): LuaValue = get(mapToLuaValue(key))
 
 context (ValueMapper) @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-inline operator fun <reified R> LuaValue.get(key: Any): R =
-    get(key).asKValue()
+inline operator fun <reified R> LuaValue.get(key: Any): R = get(key).asKValue()
 
-context (ValueMapper)
-fun LuaValue.getOrNull(key: Any): LuaValue? =
+context (ValueMapper)fun LuaValue.getOrNull(key: Any): LuaValue? =
     get(mapToLuaValue(key))?.takeIf { it != LuaValue.NIL }
 
-context (ValueMapper)
-inline fun <reified R> LuaValue.getOrNull(key: Any): R? =
+context (ValueMapper)inline fun <reified R> LuaValue.getOrNull(key: Any): R? =
     mapToKValueNullable(get(mapToLuaValue(key)), R::class) as R?
 
 // setters
 
-context (ValueMapper)
-        operator fun LuaValue.set(key: String, value: Any) =
-    set(key, mapToLuaValue(value))
+context (ValueMapper)operator fun LuaValue.set(key: String, value: Any) = set(key, mapToLuaValue(value))
 
-context (ValueMapper)
-operator fun LuaValue.set(key: Any, value: Any) =
+context (ValueMapper)operator fun LuaValue.set(key: Any, value: Any) =
     set(mapToLuaValue(key), mapToLuaValue(value))
 
 
 // invokers
 
-context (ValueMapper)
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+context (ValueMapper)@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 operator fun LuaValue.invoke(varargs: Varargs): Varargs = invoke(varargs)
 
-context (ValueMapper)
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+context (ValueMapper)@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 inline operator fun <reified R> LuaValue.invoke(varargs: Varargs): R = invoke(varargs).arg1().asKValue()
 
-context (ValueMapper)
-operator fun LuaValue.invoke(vararg args: Any): Varargs = invoke(args.map { mapToLuaValue(it) }.toTypedArray())
+context (ValueMapper)operator fun LuaValue.invoke(vararg args: Any): Varargs =
+    invoke(args.map { mapToLuaValue(it) }.toTypedArray())
 
-context (ValueMapper)
-inline operator fun <reified R> LuaValue.invoke(vararg args: Any): R = invoke(args.map { mapToLuaValue(it) }.toTypedArray()).arg1().asKValue()
+context (ValueMapper)inline operator fun <reified R> LuaValue.invoke(vararg args: Any): R =
+    invoke(args.map { mapToLuaValue(it) }.toTypedArray()).arg1().asKValue()
 
 
 // collection operators
@@ -175,41 +166,48 @@ fun LuaValue.applyFrom(luaTable: LuaTable) {
     luaTable.forEach { key, value -> set(key, value) }
 }
 
-context(ValueMapper, LuaValue)
-        infix fun Iterable<*>.nto(value: Any) {
+
+context(ValueMapper, LuaValue)  @Deprecated(
+    "Using set field method instead",
+    ReplaceWith("tableValue.set(this, mapToLuaValue(value))")
+)
+infix fun Iterable<*>.nto(value: Any) {
     forEach {
         tableValue.set(mapToLuaValue(it), mapToLuaValue(value))
     }
 }
 
-context(ValueMapper, LuaValue)
-        infix fun String.to(value: Any) {
+context(ValueMapper, LuaValue) @Deprecated(
+    "Using set field method instead",
+    ReplaceWith("tableValue.set(this, mapToLuaValue(value))")
+)
+infix fun String.to(value: Any) {
     tableValue.set(this, mapToLuaValue(value))
 }
 
-context(ValueMapper, LuaValue)
-        infix fun Any.to(value: Any) {
+
+context(ValueMapper, LuaValue)@Deprecated(
+    "Using set field method instead",
+    ReplaceWith("tableValue.set(this, mapToLuaValue(value))")
+)
+infix fun Any.to(value: Any) {
     tableValue.set(mapToLuaValue(this), mapToLuaValue(value))
 }
 
-context(ValueMapper, LuaValue)
-        operator fun LuaValue.unaryPlus() {
+context(ValueMapper, LuaValue)operator fun LuaValue.unaryPlus() {
     tableValue.insert(tableValue.keyCount(), this)
 }
 
-context(ValueMapper)
-inline fun luaTableOf(builder: LuaValue.() -> Unit): LuaValue =
+context(ValueMapper)inline fun luaTableOf(builder: LuaValue.() -> Unit): LuaValue =
     LuaTable().apply(builder).tableValue
 
-context(ValueMapper)
-fun <K: Any, V: Any> Map<K, V>.asLuaTable(): LuaValue = luaTableOf {
+context(ValueMapper)fun <K : Any, V : Any> Map<K, V>.asLuaTable(): LuaValue = luaTableOf {
     this@asLuaTable.forEach { (t, u) ->
         t.asLuaValue() to u.asLuaValue()
     }
 }
 
-context(ValueMapper)
-fun <T> Iterator<T>.asLuaTable(): LuaValue = luaTableOf {
+context(ValueMapper)fun <T> Iterator<T>.asLuaTable(): LuaValue = luaTableOf {
     this@asLuaTable.forEach {
         tableValue.insert(tableValue.keyCount(), it.asLuaValue())
     }
