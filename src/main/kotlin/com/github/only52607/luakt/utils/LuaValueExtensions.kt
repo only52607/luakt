@@ -7,10 +7,16 @@ import com.github.only52607.luakt.LuaValueMapper
 import com.github.only52607.luakt.ValueMapper
 import org.luaj.vm2.*
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.jvm.jvmErasure
 
 context (LuaValueMapper)fun LuaValue.asKValue(
     targetClass: KClass<*>? = null
 ): Any = mapToKValue(this, targetClass)
+
+context (LuaValueMapper)fun LuaValue.asKValue(
+    targetType: KType? = null
+): Any = mapToKValue(this, targetType?.jvmErasure)
 
 context (LuaValueMapper)inline fun <reified T> LuaValue.asKValue(): T =
     asKValue(T::class) as T
@@ -203,7 +209,7 @@ context(ValueMapper)inline fun luaTableOf(builder: LuaValue.() -> Unit): LuaValu
 
 context(ValueMapper)fun <K : Any, V : Any> Map<K, V>.asLuaTable(): LuaValue = luaTableOf {
     this@asLuaTable.forEach { (t, u) ->
-        t.asLuaValue() to u.asLuaValue()
+        set(t.asLuaValue(), u.asLuaValue())
     }
 }
 
