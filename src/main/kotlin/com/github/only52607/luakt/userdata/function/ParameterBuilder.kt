@@ -12,19 +12,21 @@ import kotlin.reflect.jvm.jvmErasure
  * @author ooooonly
  * @version
  */
-interface ParameterBuilder {
-    companion object INSTANCE : ParameterBuilder by ParameterBuilderImpl()
+enum class ParameterBuilder {
+    DEFAULT;
 
     fun buildParameterMap(
         parameters: List<KParameter>,
         args: Varargs,
         valueMapper: ValueMapper,
         receiver: Any? = null
-    ): Map<KParameter, Any?>
-}
+    ): Map<KParameter, Any?> {
+        return when (this) {
+            DEFAULT -> buildDefaultParameterMap(parameters, args, valueMapper, receiver)
+        }
+    }
 
-class ParameterBuilderImpl : ParameterBuilder {
-    override fun buildParameterMap(
+    private fun buildDefaultParameterMap(
         parameters: List<KParameter>,
         args: Varargs,
         valueMapper: ValueMapper,
