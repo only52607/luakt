@@ -7,13 +7,8 @@ import org.luaj.vm2.lib.VarArgFunction
 import kotlin.reflect.KFunction
 
 open class LuaKotlinOverloadedFunction(
-    private val luaKotlinFunctions: Collection<LuaKotlinFunction>,
-    private val instanceOrReceiver: Any? = null
+    private val luaKotlinFunctions: Collection<LuaKotlinFunction>
 ) : VarArgFunction() {
-
-    constructor(kFunctions: Collection<KFunction<*>>, instanceOrReceiver: Any? = null, valueMapper: ValueMapper) :
-            this(kFunctions.map { LuaKotlinFunction(it, valueMapper, instanceOrReceiver) }, instanceOrReceiver)
-
     override fun onInvoke(args: Varargs?): Varargs {
         if (luaKotlinFunctions.isEmpty()) throw ParameterNotMatchException("Required at least one LuaKotlinFunction to invoke")
         val errorInfo = StringBuilder()
@@ -32,3 +27,8 @@ open class LuaKotlinOverloadedFunction(
     override fun toString(): String =
         if (luaKotlinFunctions.isEmpty()) "" else luaKotlinFunctions.joinToString(separator = "\n") { it.toString() }
 }
+
+context (ValueMapper) fun Collection<KFunction<*>>.joinAsLuaKotlinOverloadedFunction(
+    parameterBuilder: ParameterBuilder = ParameterBuilder.Default,
+    functionCaller: FunctionCaller = FunctionCaller.Blocking
+) = LuaKotlinOverloadedFunction(map { LuaKotlinFunction(it, this@ValueMapper, parameterBuilder, functionCaller) })

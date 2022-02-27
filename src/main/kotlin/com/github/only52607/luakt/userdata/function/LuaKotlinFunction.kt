@@ -19,24 +19,24 @@ import kotlin.reflect.jvm.jvmErasure
 open class LuaKotlinFunction(
     open val kFunction: KFunction<*>,
     valueMapper: ValueMapper,
-    private val instanceOrReceiver: Any? = null,
-    private val parameterBuilder: ParameterBuilder = ParameterBuilder.DEFAULT,
-    private val functionCaller: FunctionCaller = FunctionCaller.BLOCKING
+    private val parameterBuilder: ParameterBuilder = ParameterBuilder.Default,
+    private val functionCaller: FunctionCaller = FunctionCaller.Blocking
 ) : VarArgFunction(), ValueMapper by valueMapper {
     override fun onInvoke(args: Varargs): Varargs {
-        val parametersMap = parameterBuilder.buildParameterMap(
-            parameters = kFunction.parameters,
-            args = args,
-            valueMapper = this,
-            receiver = instanceOrReceiver
-        )
-        kFunction.isAccessible = true
+        val parametersMap = with(parameterBuilder) {
+            kFunction.parameters.buildParameterMapByVarargs(args)
+        }
+        setAccessible()
         val result = try {
             functionCaller.callFunction(kFunction, parametersMap)
         } catch (e: IllegalArgumentException) {
             throw ParameterNotMatchException("Parameter not match: ${e.message}")
         }
         return result.asLuaValue()
+    }
+
+    private fun setAccessible() {
+        kFunction.isAccessible = true
     }
 
     private fun buildKParameterInfo(kParameter: KParameter): String {

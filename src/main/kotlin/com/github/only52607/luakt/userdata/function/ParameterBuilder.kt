@@ -1,6 +1,7 @@
 package com.github.only52607.luakt.userdata.function
 
 import com.github.only52607.luakt.ValueMapper
+import com.github.only52607.luakt.utils.asKValue
 import org.luaj.vm2.Varargs
 import kotlin.reflect.KParameter
 import kotlin.reflect.jvm.jvmErasure
@@ -12,52 +13,41 @@ import kotlin.reflect.jvm.jvmErasure
  * @author ooooonly
  * @version
  */
-enum class ParameterBuilder {
-    DEFAULT;
-
-    fun buildParameterMap(
-        parameters: List<KParameter>,
-        args: Varargs,
-        valueMapper: ValueMapper,
-        receiver: Any? = null
-    ): Map<KParameter, Any?> {
-        return when (this) {
-            DEFAULT -> buildDefaultParameterMap(parameters, args, valueMapper, receiver)
-        }
-    }
-
-    private fun buildDefaultParameterMap(
-        parameters: List<KParameter>,
-        args: Varargs,
-        valueMapper: ValueMapper,
-        receiver: Any?
-    ): Map<KParameter, Any?> {
-        val argNum = args.narg()
-        val parameterNum = parameters.size
-        val receiverParameters =
-            parameters.filter { it.kind == KParameter.Kind.EXTENSION_RECEIVER || it.kind == KParameter.Kind.INSTANCE }
-        val valueParameters = parameters.filter { it.kind == KParameter.Kind.VALUE }
-        val hasReceiverParameters = receiverParameters.isNotEmpty()
-        if (receiverParameters.size > 1) throw ParameterNotMatchException("Only arguments that contain ONE instance or receiver are supported")
-        if (hasReceiverParameters && argNum < 1) throw ParameterNotMatchException("Required an instance parameter, but the parameter list is empty")
-        val receiverParametersMap = receiverParameters.associateWith {
-            receiver ?: valueMapper.mapToKValueNullable(
-                args.arg1(),
-                it.type.jvmErasure
-            )
-        }
-        val valueParametersMap = valueParameters.associateWith { valueParameter ->
-            if (valueParameter.type.jvmErasure == Varargs::class) {
-                if (valueParameter.index != parameterNum - 1) throw ParameterNotMatchException("When a function receives an argument of type Varargs, only that argument is allowed at the end of the argument list")
-                return@associateWith args.subargs(valueParameter.index + 1)
+sealed class ParameterBuilder {
+    class ImplicitReceiver(private val instance: Any, private val receiver: Any? = null) : ParameterBuilder() {
+        context(ValueMapper) override fun List<KParameter>.buildParameterMapByVarargs(args: Varargs): Map<KParameter, Any?> {
+            return associateWith {
+                when (it.kind) {
+                    KParameter.Kind.INSTANCE -> instance
+                    KParameter.Kind.EXTENSION_RECEIVER -> receiver ?: instance
+                    KParameter.Kind.VALUE -> {
+                        if (it.type.jvmErasure == Varargs::class) {
+                            if (it.index != size - 1) throw ParameterNotMatchException("When a function receives an argument of type Varargs, only that argument is allowed at the end of the argument list")
+                            return@associateWith args.subargs(it.index + 1)
+                        }
+                        if (it.index + 1 > args.narg()) throw ParameterNotMatchException("Required arg at ${it.index + 1}, but received ${args.narg()} args")
+                        return@associateWith args.arg(it.index + 1).asKValue(it.type)
+                    }
+                }
             }
-            return@associateWith valueMapper.mapToKValueNullable(
-                args.arg(valueParameter.index + 1),
-                valueParameter.type.jvmErasure
-            )
         }
-        return receiverParametersMap + valueParametersMap
     }
+
+    object Default : ParameterBuilder() {
+        context(ValueMapper) override fun List<KParameter>.buildParameterMapByVarargs(args: Varargs): Map<KParameter, Any?> {
+            return associateWith {
+                if (it.index + 1 > args.narg()) throw ParameterNotMatchException("Required arg at ${it.index + 1}, but received ${args.narg()} args")
+                if (it.type.jvmErasure == Varargs::class) {
+                    if (it.index != size - 1) throw ParameterNotMatchException("When a function receives an argument of type Varargs, only that argument is allowed at the end of the argument list")
+                    return@associateWith args.subargs(it.index + 1)
+                }
+                return@associateWith args.arg(it.index + 1).asKValue(it.type)
+            }
+        }
+    }
+
+    context (ValueMapper)
+            abstract fun List<KParameter>.buildParameterMapByVarargs(args: Varargs): Map<KParameter, Any?>
 }
 
 class ParameterNotMatchException(override val message: String?) : Exception(message)

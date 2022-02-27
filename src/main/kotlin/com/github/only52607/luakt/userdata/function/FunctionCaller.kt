@@ -13,7 +13,7 @@ import kotlin.reflect.full.callSuspendBy
  * @version
  */
 sealed class FunctionCaller {
-    object BLOCKING : FunctionCaller() {
+    object Blocking : FunctionCaller() {
         override fun callFunction(kFunction: KFunction<*>, parametersMap: Map<KParameter, Any?>): Any? {
             return if (kFunction.isSuspend) {
                 runBlocking {
