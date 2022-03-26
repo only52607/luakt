@@ -1,16 +1,16 @@
 buildscript {
-    ext.kotlin_version = '1.6.20-M1'
+    ext.kotlin_version = '1.6.20-RC2'
     repositories {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.20-M1"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.20-RC2"
     }
 }
 
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.6.20-M1'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.20-RC2'
     id 'maven-publish'
 }
 
@@ -47,9 +47,9 @@ compileTestKotlin {
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-//tasks.withType(JavaCompile) {
-//    options.encoding = "UTF-8"
-//}
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
 
 task sourceJar(type: Jar, dependsOn: classes) {
     classifier 'sources'
