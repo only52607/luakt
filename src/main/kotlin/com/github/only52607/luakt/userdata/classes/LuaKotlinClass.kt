@@ -19,7 +19,11 @@ open class LuaKotlinClass(
     kClass: KClass<*>,
     private val valueMapper: ValueMapper,
     private val kClassExtensionProvider: KClassExtensionProvider
-) : AbstractLuaKotlinClass(kClass) {
+) : AbstractLuaKotlinClass(kClass), ValueMapper by valueMapper {
+    companion object {
+        const val ASYNC_CALL_PREFIX = "async_"
+    }
+
     // Statics
     private val associatedStaticProperties: Map<String, KProperty<*>> by lazy {
         kClass.staticProperties.associateBy(KProperty<*>::name)
