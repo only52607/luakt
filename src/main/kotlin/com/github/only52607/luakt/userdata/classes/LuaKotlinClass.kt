@@ -2,6 +2,9 @@ package com.github.only52607.luakt.userdata.classes
 
 import com.github.only52607.luakt.ValueMapper
 import com.github.only52607.luakt.userdata.function.LuaKotlinOverloadedFunction
+import com.github.only52607.luakt.userdata.function.joinAsLuaKotlinOverloadedFunction
+import com.github.only52607.luakt.utils.asKValue
+import com.github.only52607.luakt.utils.asLuaValue
 import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
@@ -12,12 +15,11 @@ import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.isAccessible
-import kotlin.reflect.jvm.jvmErasure
 
 @Suppress("unused")
 open class LuaKotlinClass(
     kClass: KClass<*>,
-    private val valueMapper: ValueMapper,
+    valueMapper: ValueMapper,
     private val kClassExtensionProvider: KClassExtensionProvider
 ) : AbstractLuaKotlinClass(kClass), ValueMapper by valueMapper {
     companion object {
@@ -32,7 +34,7 @@ open class LuaKotlinClass(
         kClass.staticFunctions.groupBy(KFunction<*>::name)
     }
     private val overloadedStaticFunctionWrappersLua: Map<String, LuaKotlinOverloadedFunction> by lazy {
-        groupedStaticFunctions.mapValues { LuaKotlinOverloadedFunction(it.value, null, valueMapper) }
+        groupedStaticFunctions.mapValues { it.value.joinAsLuaKotlinOverloadedFunction() }
     }
 
     // Members
@@ -44,18 +46,12 @@ open class LuaKotlinClass(
         kClass.functions.plus(kClassExtensionProvider.provideExtensionFunctions(kClass)).groupBy(KFunction<*>::name)
     }
     private val overloadedFunctionWrappersLua: Map<String, LuaKotlinOverloadedFunction> by lazy {
-        groupedFunctions.mapValues { LuaKotlinOverloadedFunction(it.value, null, valueMapper) }
+        groupedFunctions.mapValues { it.value.joinAsLuaKotlinOverloadedFunction() }
     }
 
     // Constructors
-    private val constructors: Collection<KFunction<*>> by lazy {
-        kClass.constructors
-    }
-    private val constructorLua: LuaKotlinOverloadedFunction by lazy {
-        LuaKotlinOverloadedFunction(constructors, null, valueMapper)
-    }
     private val overloadedConstructorLua: LuaKotlinOverloadedFunction by lazy {
-        LuaKotlinOverloadedFunction(constructors.toList(), null, valueMapper)
+        kClass.constructors.joinAsLuaKotlinOverloadedFunction()
     }
 
     override fun containsMemberProperty(name: String): Boolean =
@@ -77,7 +73,7 @@ open class LuaKotlinClass(
         val mutableProperty = property as KMutableProperty
         mutableProperty.setter.call(
             self,
-            valueMapper.mapToKValueNullable(value, property.returnType.jvmErasure)
+            value.asKValue(property.returnType)
         )
     }
 
@@ -85,7 +81,7 @@ open class LuaKotlinClass(
         val property = associatedMemberProperties[name] ?: return LuaValue.NIL
         property.isAccessible = true
         val result = property.getter.call(self) ?: return LuaValue.NIL
-        return valueMapper.mapToLuaValue(result)
+        return result.asLuaValue()
     }
 
     override fun getMemberFunction(name: String): LuaValue {
@@ -94,12 +90,12 @@ open class LuaKotlinClass(
 
     override fun setStaticProperty(name: String, value: LuaValue) {
         val property = associatedStaticProperties[name] as KMutableProperty
-        val kValue = valueMapper.mapToKValueNullable(value, property.setter.parameters.first().type.jvmErasure)
+        val kValue = value.asKValue(property.setter.parameters.first().type)
         property.setter.call(kValue)
     }
 
     override fun getStaticProperty(name: String): LuaValue =
-        associatedStaticProperties[name]?.getter?.call()?.let(valueMapper::mapToLuaValue) ?: NIL
+        associatedStaticProperties[name]?.getter?.call()?.asLuaValue() ?: NIL
 
     override fun getStaticFunction(name: String): LuaValue =
         overloadedStaticFunctionWrappersLua[name] ?: NIL
@@ -108,7 +104,7 @@ open class LuaKotlinClass(
         associatedMemberProperties.forEach { property ->
             val value = try {
                 property.value.isAccessible = true
-                valueMapper.mapToLuaValue(property.value.getter.call(self))
+                property.value.getter.call(self).asLuaValue()
             } catch (e: Exception) {
                 LuaValue.NIL
             }
@@ -119,5 +115,5 @@ open class LuaKotlinClass(
     private val allMemberFunctions by lazy { LuaTable.listOf(overloadedFunctionWrappersLua.values.toTypedArray()) }
     override fun getAllMemberFunctions(): LuaValue = allMemberFunctions
 
-    override fun invokeConstructor(args: Varargs?): Varargs = constructorLua.invoke(args)
+    override fun invokeConstructor(args: Varargs?): Varargs = overloadedConstructorLua.invoke(args)
 }

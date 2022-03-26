@@ -1,32 +1,27 @@
 package com.github.only52607.luakt.lib
 
 import com.github.only52607.luakt.ValueMapper
-import com.github.only52607.luakt.utils.provideScope
+import com.github.only52607.luakt.utils.luaFunctionOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.luaj.vm2.Globals
-import org.luaj.vm2.LuaClosure
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.lib.TwoArgFunction
 
 @Suppress("unused")
-class KotlinCoroutineLib(private val coroutineScope: CoroutineScope, val valueMapper: ValueMapper) : TwoArgFunction() {
+class KotlinCoroutineLib(private val coroutineScope: CoroutineScope, val valueMapper: ValueMapper) : TwoArgFunction(), ValueMapper by valueMapper {
     override fun call(modName: LuaValue?, env: LuaValue?): LuaValue? {
-        val globals: Globals? = env?.checkglobals()
-        valueMapper.provideScope {
-            globals?.edit {
-                "sleep" to luaFunctionOf { time: Long ->
-                    runBlocking { delay(time) }
-                }
-                "delay" to luaFunctionOf { time: Long ->
-                    runBlocking { delay(time) }
-                }
-                "launch" to luaFunctionOf { cls: LuaClosure ->
-                    return@luaFunctionOf coroutineScope.launch {
-                        cls.invoke()
-                    }
+        env?.checkglobals()?.apply {
+            "sleep" to luaFunctionOf { time: Long ->
+                runBlocking { delay(time) }
+            }
+            "delay" to luaFunctionOf { time: Long ->
+                runBlocking { delay(time) }
+            }
+            "launch" to luaFunctionOf { cls: LuaValue ->
+                return@luaFunctionOf coroutineScope.launch {
+                    cls.invoke()
                 }
             }
         }

@@ -29,3 +29,5 @@ val defaultValueMapper: ValueMapper by lazy {
     )
     resultValueMapper
 }
+
+fun <R> withDefaultValueMapper(block: ValueMapper.() -> R) = with(defaultValueMapper, block)

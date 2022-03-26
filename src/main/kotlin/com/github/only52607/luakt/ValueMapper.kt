@@ -23,7 +23,7 @@ import kotlin.reflect.KClass
                     VarArgFunction
 */
 
-fun interface KValueMapper {
+interface KValueMapper {
     fun mapToLuaValue(obj: Any?): LuaValue
 }
 

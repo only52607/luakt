@@ -51,7 +51,7 @@ class CollectionLuaValueMapper(
             return if (luaValue.istable()) {
                 mutableMapOf<Any, Any>().addFromLuaValue(luaValue)
             } else {
-                nextMapToKValue(luaValue, targetClass)
+                nextMapToKValue(luaValue, null)
             }
         }
 
@@ -59,9 +59,13 @@ class CollectionLuaValueMapper(
             targetClass.isSuperclassOf(MutableMap::class) -> return mutableMapOf<Any, Any>().addFromLuaValue(luaValue)
             targetClass.isSuperclassOf(MutableList::class) -> return mutableListOf<Any>().addFromLuaValue(luaValue)
             targetClass.isSuperclassOf(MutableSet::class) -> return mutableSetOf<Any>().addFromLuaValue(luaValue)
+            targetClass.isSuperclassOf(Array::class) -> return mutableListOf<Any>().addFromLuaValue(luaValue)
         }
 
-        return nextMapToKValue(luaValue, targetClass)
+        return nextMapToKValue(luaValue, targetClass).let {
+            if (targetClass.isSuperclassOf(Array::class)) (it as List<*>).toTypedArray()
+            else it
+        }
     }
 
     private fun MutableCollection<Any>.addFromLuaValue(luaValue: LuaValue) = apply {

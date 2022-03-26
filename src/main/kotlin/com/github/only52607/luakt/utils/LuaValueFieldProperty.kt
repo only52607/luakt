@@ -1,5 +1,6 @@
-package com.github.only52607.luakt
+package com.github.only52607.luakt.utils
 
+import com.github.only52607.luakt.ValueMapper
 import org.luaj.vm2.LuaValue
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -12,7 +13,7 @@ import kotlin.reflect.jvm.jvmErasure
  * @author ooooonly
  * @version
  */
-class LuaValueFieldProperty<T : Any?>(
+class LuaValueFieldProperty<T : Any?> (
     private val valueMapper: ValueMapper,
     private val luaValue: LuaValue,
     private val key: String? = null,
@@ -33,8 +34,8 @@ class LuaValueFieldProperty<T : Any?>(
     }
 }
 
+context (ValueMapper)
 fun <T : Any?> LuaValue.field(
-    valueMapper: ValueMapper,
     key: String? = null,
     defaultValue: T? = null
-) = LuaValueFieldProperty(valueMapper, this, key, defaultValue)
+) = LuaValueFieldProperty(this@ValueMapper, this, key, defaultValue)

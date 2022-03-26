@@ -1,4 +1,5 @@
 @file:Suppress("UNUSED")
+
 package com.github.only52607.luakt.utils
 
 import com.github.only52607.luakt.ValueMapper
@@ -6,107 +7,117 @@ import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
 import org.luaj.vm2.lib.VarArgFunction
 
-
 fun varArgFunctionOf(block: (Varargs) -> Varargs) = object : VarArgFunction() {
     override fun onInvoke(args: Varargs?): Varargs {
-        if (args == null) return LuaValue.NIL
+        args ?: return LuaValue.NIL
         return block(args)
     }
 }
 
-fun luaFunctionOf(valueMapper: ValueMapper, block: () -> Any) = varArgFunctionOf {
-    return@varArgFunctionOf block().asLuaValue(valueMapper)
+context(ValueMapper)
+fun luaFunctionOf(block: () -> Any) = object : VarArgFunction() {
+    override fun onInvoke(args: Varargs?): Varargs {
+        args ?: return LuaValue.NIL
+        return block().asLuaValue()
+    }
 }
 
-inline fun <reified T0> luaFunctionOf(valueMapper: ValueMapper, crossinline block: (T0) -> Any) =
-    varArgFunctionOf { args ->
-        return@varArgFunctionOf block(args.arg(1).asKValue(valueMapper)).asLuaValue(valueMapper)
+context(ValueMapper)inline fun <reified T0> luaFunctionOf(crossinline block: (T0) -> Any) = object : VarArgFunction() {
+    override fun onInvoke(args: Varargs?): Varargs {
+        args ?: return LuaValue.NIL
+        return block(args.arg(1).asKValue()).asLuaValue()
+    }
+}
+
+context(ValueMapper)inline fun <reified T0, reified T1> luaFunctionOf(crossinline block: (T0, T1) -> Any) =
+    object : VarArgFunction() {
+        override fun onInvoke(args: Varargs?): Varargs {
+            args ?: return LuaValue.NIL
+            return block(args.arg(1).asKValue(), args.arg(2).asKValue()).asLuaValue()
+        }
     }
 
-inline fun <reified T0, reified T1> luaFunctionOf(valueMapper: ValueMapper, crossinline block: (T0, T1) -> Any) =
-    varArgFunctionOf { args ->
-        return@varArgFunctionOf block(args.arg(1).asKValue(valueMapper), args.arg(2).asKValue(valueMapper)).asLuaValue(
-            valueMapper
-        )
-    }
-
-inline fun <reified T0, reified T1, reified T2> luaFunctionOf(
-    valueMapper: ValueMapper,
+context(ValueMapper)inline fun <reified T0, reified T1, reified T2> luaFunctionOf(
     crossinline block: (T0, T1, T2) -> Any
-) =
-    varArgFunctionOf { args ->
-        block(
-            args.arg(1).asKValue(valueMapper),
-            args.arg(2).asKValue(valueMapper),
-            args.arg(3).asKValue(valueMapper)
-        ).asLuaValue(
-            valueMapper
-        )
+) = object : VarArgFunction() {
+    override fun onInvoke(args: Varargs?): Varargs {
+        args ?: return LuaValue.NIL
+        return block(
+            args.arg(1).asKValue(),
+            args.arg(2).asKValue(),
+            args.arg(3).asKValue()
+        ).asLuaValue()
     }
+}
 
-inline fun <reified T0, reified T1, reified T2, reified T3> luaFunctionOf(
-    valueMapper: ValueMapper,
+context(ValueMapper)inline fun <reified T0, reified T1, reified T2, reified T3> luaFunctionOf(
     crossinline block: (T0, T1, T2, T3) -> Any
-) =
-    varArgFunctionOf { args ->
-        block(
-            args.arg(1).asKValue(valueMapper),
-            args.arg(2).asKValue(valueMapper),
-            args.arg(3).asKValue(valueMapper),
-            args.arg(4).asKValue(valueMapper)
-        ).asLuaValue(valueMapper)
+) = object : VarArgFunction() {
+    override fun onInvoke(args: Varargs?): Varargs {
+        args ?: return LuaValue.NIL
+        return block(
+            args.arg(1).asKValue(),
+            args.arg(2).asKValue(),
+            args.arg(3).asKValue(),
+            args.arg(4).asKValue()
+        ).asLuaValue()
     }
+}
 
-inline fun <reified T0, reified T1, reified T2, reified T3, reified T4> luaFunctionOf(
-    valueMapper: ValueMapper,
+context(ValueMapper)inline fun <reified T0, reified T1, reified T2, reified T3, reified T4> luaFunctionOf(
     crossinline block: (T0, T1, T2, T3, T4) -> Any
-) =
-    varArgFunctionOf { args ->
-        block(
-            args.arg(1).asKValue(valueMapper),
-            args.arg(2).asKValue(valueMapper),
-            args.arg(3).asKValue(valueMapper),
-            args.arg(4).asKValue(valueMapper),
-            args.arg(5).asKValue(valueMapper)
-        ).asLuaValue(valueMapper)
+) = object : VarArgFunction() {
+    override fun onInvoke(args: Varargs?): Varargs {
+        args ?: return LuaValue.NIL
+        return block(
+            args.arg(1).asKValue(),
+            args.arg(2).asKValue(),
+            args.arg(3).asKValue(),
+            args.arg(4).asKValue(),
+            args.arg(5).asKValue()
+        ).asLuaValue()
     }
+}
 
-inline fun <
-        reified T0,
-        reified T1,
-        reified T2,
-        reified T3,
-        reified T4,
-        reified T5> luaFunctionOf(valueMapper: ValueMapper, crossinline block: (T0, T1, T2, T3, T4, T5) -> Any) =
-    varArgFunctionOf { args ->
-        block(
-            args.arg(1).asKValue(valueMapper),
-            args.arg(2).asKValue(valueMapper),
-            args.arg(3).asKValue(valueMapper),
-            args.arg(4).asKValue(valueMapper),
-            args.arg(5).asKValue(valueMapper),
-            args.arg(6).asKValue(valueMapper)
-        ).asLuaValue(valueMapper)
+context(ValueMapper)inline fun <reified T0, reified T1, reified T2, reified T3, reified T4, reified T5> luaFunctionOf(
+    crossinline block: (T0, T1, T2, T3, T4, T5) -> Any
+) = object : VarArgFunction() {
+    override fun onInvoke(args: Varargs?): Varargs {
+        args ?: return LuaValue.NIL
+        return block(
+            args.arg(1).asKValue(),
+            args.arg(2).asKValue(),
+            args.arg(3).asKValue(),
+            args.arg(4).asKValue(),
+            args.arg(5).asKValue(),
+            args.arg(6).asKValue()
+        ).asLuaValue()
     }
+}
 
-
-inline fun <
-        reified T0,
-        reified T1,
-        reified T2,
-        reified T3,
-        reified T4,
-        reified T5,
-        reified T6>
-        luaFunctionOf(valueMapper: ValueMapper, crossinline block: (T0, T1, T2, T3, T4, T5, T6) -> Any) =
-    varArgFunctionOf { args ->
-        block(
-            args.arg(1).asKValue(valueMapper),
-            args.arg(2).asKValue(valueMapper),
-            args.arg(3).asKValue(valueMapper),
-            args.arg(4).asKValue(valueMapper),
-            args.arg(5).asKValue(valueMapper),
-            args.arg(6).asKValue(valueMapper),
-            args.arg(7).asKValue(valueMapper)
-        ).asLuaValue(valueMapper)
+context(ValueMapper)inline fun <reified T0, reified T1, reified T2, reified T3, reified T4, reified T5, reified T6> luaFunctionOf(
+    crossinline block: (T0, T1, T2, T3, T4, T5, T6) -> Any
+) = object : VarArgFunction() {
+    override fun onInvoke(args: Varargs?): Varargs {
+        args ?: return LuaValue.NIL
+        return block(
+            args.arg(1).asKValue(),
+            args.arg(2).asKValue(),
+            args.arg(3).asKValue(),
+            args.arg(4).asKValue(),
+            args.arg(5).asKValue(),
+            args.arg(6).asKValue(),
+            args.arg(7).asKValue()
+        ).asLuaValue()
     }
+}
+
+context(ValueMapper, LuaValue) inline fun <reified T0> setFunction(
+    key: String,
+    alias: List<String>? = null,
+    noinline block: () -> Any
+) {
+    val f = luaFunctionOf(block)
+    set(key, f)
+    alias?.forEach { set(it, f) }
+}
