@@ -1,21 +1,21 @@
 buildscript {
-    ext.kotlin_version = '1.6.20-RC2'
+    ext.kotlin_version = '1.6.20'
     repositories {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.20-RC2"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.20"
     }
 }
 
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.6.20-RC2'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.20'
     id 'maven-publish'
 }
 
 group 'com.github.only52607'
-version '2.4.0'
+version '2.4.1'
 
 repositories {
     maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
