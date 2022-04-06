@@ -25,42 +25,46 @@ class LuaKotlinLib(
         return luaTableOf {
             val collectionKValueMapper = CollectionKValueMapper(firstKValueMapper = this@LuaKotlinLib)
             val collectionLuaValueMapper = CollectionLuaValueMapper(firstLuaValueMapper = this@LuaKotlinLib)
-            this["functions"] = luaFunctionOf { value: LuaValue ->
+            this["functions"] = oneArgLuaFunctionOf { value: LuaValue ->
                 if (value is LuaKotlinObject) {
-                    return@luaFunctionOf value.luaKotlinClass.getAllMemberFunctions()
+                    return@oneArgLuaFunctionOf value.luaKotlinClass.getAllMemberFunctions()
                 }
-                return@luaFunctionOf NIL
+                return@oneArgLuaFunctionOf NIL
             }
-            this["totable"] = luaFunctionOf { value: LuaValue ->
-                return@luaFunctionOf collectionKValueMapper.mapToLuaValue(value.checkuserdata())
+            this["totable"] = oneArgLuaFunctionOf { value: LuaValue ->
+                return@oneArgLuaFunctionOf collectionKValueMapper.mapToLuaValue(value.checkuserdata())
             }
-            this["tomap"] = luaFunctionOf { value: LuaValue ->
-                return@luaFunctionOf collectionLuaValueMapper.mapToKValue(value.checktable(), Map::class)
+            this["tomap"] = oneArgLuaFunctionOf { value: LuaValue ->
+                return@oneArgLuaFunctionOf collectionLuaValueMapper.mapToKValue(value.checktable(), Map::class)
+                    .asLuaValue()
             }
-            this["tolist"] = luaFunctionOf { value: LuaValue ->
-                return@luaFunctionOf collectionLuaValueMapper.mapToKValue(value.checktable(), List::class)
+            this["tolist"] = oneArgLuaFunctionOf { value: LuaValue ->
+                return@oneArgLuaFunctionOf collectionLuaValueMapper.mapToKValue(value.checktable(), List::class)
+                    .asLuaValue()
             }
-            this["toset"] = luaFunctionOf { value: LuaValue ->
-                return@luaFunctionOf collectionLuaValueMapper.mapToKValue(value.checktable(), Set::class)
+            this["toset"] = oneArgLuaFunctionOf { value: LuaValue ->
+                return@oneArgLuaFunctionOf collectionLuaValueMapper.mapToKValue(value.checktable(), Set::class)
+                    .asLuaValue()
             }
-            this["toarray"] = luaFunctionOf { value: LuaValue ->
-                return@luaFunctionOf collectionLuaValueMapper.mapToKValue(value.checktable(), Array::class)
+            this["toarray"] = oneArgLuaFunctionOf { value: LuaValue ->
+                return@oneArgLuaFunctionOf collectionLuaValueMapper.mapToKValue(value.checktable(), Array::class)
+                    .asLuaValue()
             }
-            this["tobytearray"] = luaFunctionOf { value: LuaValue ->
+            this["tobytearray"] = oneArgLuaFunctionOf { value: LuaValue ->
                 if (value.isstring()) {
-                    return@luaFunctionOf checkjstring().encodeToByteArray()
+                    return@oneArgLuaFunctionOf checkjstring().encodeToByteArray().asLuaValue()
                 }
                 if (value.istable()) {
                     val list = mutableListOf<Byte>()
                     value.forEach { _, v ->
                         list.add(v.checkint().toByte())
                     }
-                    return@luaFunctionOf list.toByteArray()
+                    return@oneArgLuaFunctionOf list.toByteArray().asLuaValue()
                 }
                 throw LuaError("Could not convert $value to bytearray")
             }
-            this["import"] = luaFunctionOf { className: String ->
-                return@luaFunctionOf luaKotlinClassRegistry.obtainLuaKotlinClass(classLoader.loadClass(className).kotlin)
+            this["import"] = oneArgLuaFunctionOf { className: LuaValue ->
+                return@oneArgLuaFunctionOf luaKotlinClassRegistry.obtainLuaKotlinClass(classLoader.loadClass(className.checkjstring()).kotlin)
             }
             this["createProxy"] = varArgFunctionOf { varargs: Varargs ->
                 val varargList = varargs.unpackVarargs()

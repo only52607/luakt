@@ -13,13 +13,13 @@ import org.luaj.vm2.lib.TwoArgFunction
 class KotlinCoroutineLib(private val coroutineScope: CoroutineScope, val valueMapper: ValueMapper) : TwoArgFunction(), ValueMapper by valueMapper {
     override fun call(modName: LuaValue?, env: LuaValue?): LuaValue? {
         env?.checkglobals()?.apply {
-            "sleep" to luaFunctionOf { time: Long ->
+            "sleep" to luaFunctionOf(this@KotlinCoroutineLib) { time: Long ->
                 runBlocking { delay(time) }
             }
-            "delay" to luaFunctionOf { time: Long ->
+            "delay" to luaFunctionOf(this@KotlinCoroutineLib) { time: Long ->
                 runBlocking { delay(time) }
             }
-            "launch" to luaFunctionOf { cls: LuaValue ->
+            "launch" to luaFunctionOf(this@KotlinCoroutineLib) { cls: LuaValue ->
                 return@luaFunctionOf coroutineScope.launch {
                     cls.invoke()
                 }
