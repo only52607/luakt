@@ -18,7 +18,7 @@ allprojects {
     apply plugin: 'org.jetbrains.kotlin.jvm'
 
     group 'com.github.only52607'
-    version '2.5.0'
+    version '2.5.5'
 
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
@@ -61,9 +61,10 @@ subprojects {
 }
 
 dependencies {
-    implementation project(":luakt-core")
-    implementation project(":luakt-libs")
-    implementation project(":luakt-dsl")
+    api project(":luakt-luaj")
+    api project(":luakt-core")
+    api project(":luakt-libs")
+    api project(":luakt-dsl")
 
     testImplementation project(":luakt-core")
     testImplementation project(":luakt-dsl")
@@ -78,6 +79,8 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 publishing {
     publications {
         luakt(MavenPublication) {
+            setArtifactId("luakt")
+            from components.java
         }
         luaj(MavenPublication) {
             setArtifactId("luakt-luaj")
