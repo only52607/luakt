@@ -263,12 +263,12 @@ inline fun <reified T0, reified T1, reified T2, reified T3, reified T4, reified 
 //    }
 //}
 
-context(ValueMapper, LuaValue) inline fun <reified T0> setFunction(
-    key: String,
-    alias: List<String>? = null,
-    noinline block: () -> Any
-) {
-    val f = luaFunctionOf(this@ValueMapper, block)
-    set(key, f)
-    alias?.forEach { set(it, f) }
-}
+//context(ValueMapper, LuaValue) inline fun <reified T0> setFunction(
+//    key: String,
+//    alias: List<String>? = null,
+//    noinline block: () -> Any
+//) {
+//    val f = luaFunctionOf(this@ValueMapper, block)
+//    set(key, f)
+//    alias?.forEach { set(it, f) }
+//}

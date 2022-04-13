@@ -15,7 +15,7 @@ plugins {
 }
 
 group 'com.github.only52607'
-version '2.4.1'
+version '2.4.5'
 
 repositories {
     maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
