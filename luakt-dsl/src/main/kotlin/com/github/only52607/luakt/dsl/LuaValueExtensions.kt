@@ -75,7 +75,7 @@ val Int.luaValue: LuaValue
 
 val Long.luaValue: LuaValue
     get() = if (this >= Int.MIN_VALUE && this <= Int.MAX_VALUE) LuaValue.valueOf(this.toInt()) else LuaValue.valueOf(
-        this.toString()
+        this.toDouble()
     )
 
 val Boolean.luaValue: LuaValue
@@ -92,6 +92,22 @@ val ByteArray.luaValue: LuaValue
 
 val Array<LuaValue>.luaListValue: LuaTable
     get() = LuaValue.listOf(this)
+
+inline fun buildLuaTable(builder: LuaValue.() -> Unit): LuaTable =
+    LuaTable().apply(builder).tableValue
+
+fun luaTableOf(vararg pairs: Pair<LuaValue, LuaValue>) = buildLuaTable {
+    pairs.forEach { (k, v) ->
+        this@buildLuaTable.set(k, v)
+    }
+}
+
+fun luaTableOfStringKeys(vararg pairs: Pair<String, LuaValue>) = buildLuaTable {
+    pairs.forEach { (k, v) ->
+        this@buildLuaTable.set(k, v)
+    }
+}
+
 
 // getters
 
