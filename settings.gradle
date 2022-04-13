@@ -1,2 +1,7 @@
 rootProject.name = 'luakt'
+include 'luakt-luaj'
+include 'luakt-dsl'
+include 'luakt-dsl-cr'
+include 'luakt-core'
+include 'luakt-libs'
 

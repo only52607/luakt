@@ -3,7 +3,5 @@
 /.settings
 /.gradle
 /bin
-/src/test
 .classpath
 .project
-/src/test/kotlin/
