@@ -1,3 +1,4 @@
+import com.github.only52607.luakt.lib.LuaKotlinExLib
 import com.github.only52607.luakt.lib.LuaKotlinLib
 import org.luaj.vm2.Globals
 import org.luaj.vm2.LoadState
@@ -8,19 +9,19 @@ import org.luaj.vm2.lib.jse.JseIoLib
 import org.luaj.vm2.lib.jse.JseMathLib
 import org.luaj.vm2.lib.jse.JseOsLib
 
-class LuaKotlinTest {
+class LuaKotlinExTest {
     @org.junit.Test
-    fun basicTest() {
-        val g = ktGlobals()
+    fun extendTest() {
+        val g = ktGlobalsEx()
         g.load(
-            LuaKotlinTest::class.java.getResourceAsStream("lua/basic.lua"),
-            "basic.lua",
+            LuaKotlinExTest::class.java.getResourceAsStream("lua/extend.lua"),
+            "extend.lua",
             "t",
             g
         ).invoke()
     }
 
-    private fun ktGlobals(): Globals {
+    private fun ktGlobalsEx(): Globals {
         val globals = Globals()
         globals.load(JseBaseLib())
         globals.load(PackageLib())
@@ -32,6 +33,7 @@ class LuaKotlinTest {
         globals.load(JseIoLib())
         globals.load(JseOsLib())
         globals.load(LuaKotlinLib())
+        globals.load(LuaKotlinExLib())
         LoadState.install(globals)
         LuaC.install(globals)
         return globals

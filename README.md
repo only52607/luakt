@@ -7,7 +7,17 @@ Based on [luaj](https://github.com/luaj/luaj), with enhanced interoperability wi
 
 > Assuming you are already familiar with the basic API of [luaj](https://github.com/luaj/luaj).
 
-### Add dependency with luaj (Gradle)
+1. Add the JitPack repository to your build file
+```gradle
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+2. Add dependency with luaj
 
 ```gradle
 dependencies {
@@ -22,6 +32,11 @@ dependencies {
     implementation 'com.github.only52607.luakt:luakt-extension:$luakt_version'
 }
 ```
+
+> `luakt` contains the following three modules \
+> `luakt-core`: The core module of luakt, including features such as type coercion. \
+> `luakt-extension`: The extension module of luakt provides some useful utility functions. \
+> `luakt-luaj`: The luaj library, if your project already includes this library, you don’t need to add it repeatedly.
 
 ### Example
 
