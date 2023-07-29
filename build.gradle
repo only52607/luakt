@@ -1,15 +1,17 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 buildscript {
     repositories {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.20"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.21"
     }
 }
 
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.6.20'
+    id 'org.jetbrains.kotlin.jvm' version '1.8.21'
     id 'maven-publish'
 }
 
@@ -18,22 +20,29 @@ allprojects {
     apply plugin: 'org.jetbrains.kotlin.jvm'
 
     group 'com.github.only52607.luakt'
-    version '2.5.7'
+    version '2.6.0'
 
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1'
+        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1'
         implementation "org.jetbrains.kotlin:kotlin-reflect"
         implementation 'cglib:cglib:3.3.0'
-        testImplementation group: 'junit', name: 'junit', version: '4.12'
+        testImplementation group: 'junit', name: 'junit', version: '4.13.1'
     }
 
     repositories {
-        maven { url 'https://maven.aliyun.com/repository/central' }
-        maven { url 'https://maven.aliyun.com/repository/public' }
-        maven { url 'https://maven.aliyun.com/repository/google' }
         maven { url 'https://www.jitpack.io' }
         mavenCentral()
+    }
+
+    tasks.register('sourcesJar', Jar) {
+        from sourceSets.main.allJava
+        archiveClassifier.set('sources')
+    }
+
+    tasks.register('javadocJar', Jar) {
+        from javadoc
+        archiveClassifier.set('javadoc')
     }
 
     compileKotlin {
@@ -43,83 +52,32 @@ allprojects {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
-}
 
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'org.jetbrains.kotlin.jvm'
+    afterEvaluate {
+        publishing {
+            publications {
+                "$project.name"(MavenPublication) {
+                    from components.java
+                    artifact sourcesJar
+                    artifact javadocJar
+                }
+            }
 
-    task sourcesJar(type: Jar) {
-        from sourceSets.main.allJava
-        archiveClassifier.set('sources')
-    }
+            repositories {
+                maven {
 
-    task javadocJar(type: Jar) {
-        from javadoc
-        archiveClassifier.set('javadoc')
+                }
+            }
+        }
     }
 }
 
 dependencies {
     api project(":luakt-luaj")
     api project(":luakt-core")
-    api project(":luakt-libs")
-    api project(":luakt-dsl")
-
-    testImplementation project(":luakt-core")
-    testImplementation project(":luakt-dsl")
-    testImplementation project(":luakt-dsl-cr")
-    testImplementation project(":luakt-libs")
+    api project(":luakt-extension")
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+tasks.withType(KotlinCompile).configureEach {
     kotlinOptions.freeCompilerArgs = ["-Xcontext-receivers"]
-}
-
-publishing {
-    publications {
-        luakt(MavenPublication) {
-            setArtifactId("luakt")
-            from components.java
-        }
-        luaj(MavenPublication) {
-            setArtifactId("luakt-luaj")
-            def coreProject = project(':luakt-luaj')
-            from coreProject.components.java
-            artifact coreProject.tasks.sourcesJar
-            artifact coreProject.tasks.javadocJar
-        }
-        core(MavenPublication) {
-            setArtifactId("luakt-core")
-            def coreProject = project(":luakt-core")
-            from coreProject.components.java
-            artifact coreProject.tasks.sourcesJar
-            artifact coreProject.tasks.javadocJar
-        }
-        libs(MavenPublication) {
-            setArtifactId("luakt-libs")
-            def coreProject = project(':luakt-libs')
-            from coreProject.components.java
-            artifact coreProject.tasks.sourcesJar
-            artifact coreProject.tasks.javadocJar
-        }
-        dsl(MavenPublication) {
-            setArtifactId("luakt-dsl")
-            def coreProject = project(':luakt-dsl')
-            from coreProject.components.java
-            artifact coreProject.tasks.sourcesJar
-            artifact coreProject.tasks.javadocJar
-        }
-        dslCr(MavenPublication) {
-            setArtifactId("luakt-dsl-cr")
-            def coreProject = project(':luakt-dsl-cr')
-            from coreProject.components.java
-            artifact coreProject.tasks.sourcesJar
-            artifact coreProject.tasks.javadocJar
-        }
-    }
-
-    repositories {
-        mavenCentral()
-    }
 }

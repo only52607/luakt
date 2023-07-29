@@ -4,8 +4,10 @@ plugins {
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
 }
 
-tasks.withType(Javadoc).all { enabled = false }
+tasks.withType(Javadoc).configureEach {
+    enabled = false
+}
