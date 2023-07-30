@@ -1,11 +1,11 @@
 # LuaKt [![](https://www.jitpack.io/v/only52607/luakt.svg)](https://www.jitpack.io/#only52607/luakt)
 
-Based on [luaj](https://github.com/luaj/luaj), with enhanced interoperability with kotlin.
+Based on [luaj](https://luaj.sourceforge.net/), with enhanced interoperability with kotlin.
 
 
 ## Get Started
 
-> Assuming you are already familiar with the basic API of [luaj](https://github.com/luaj/luaj).
+> Assuming you are already familiar with the basic API of [luaj](https://luaj.sourceforge.net/).
 
 1. Add the JitPack repository to your build file
 ```gradle
