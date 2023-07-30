@@ -25,7 +25,7 @@ dependencies {
 }
 ```
 
-### or without luaj
+or without luaj
 ```gradle
 dependencies {
     implementation 'com.github.only52607.luakt:luakt-core:$luakt_version'
